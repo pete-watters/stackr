@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.next/
+.turbo/
+styled-system/
+.expo/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.dev.vars
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Testing
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Cloudflare
+.wrangler/
+.open-next/
+
+# Debug
+npm-debug.log*
+pnpm-debug.log*
