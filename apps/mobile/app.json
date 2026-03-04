@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Stackr",
+    "slug": "stackr",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "scheme": "stackr",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.stackr.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0d0d0d"
+      },
+      "package": "com.stackr.app"
+    },
+    "plugins": ["expo-router"]
+  }
+}
