@@ -7,6 +7,7 @@ import type { Chain } from '@stackr/models';
 import { useBalance } from '@stackr/queries';
 import { useWalletStore } from '@/lib/wallet-store';
 import { Header } from '@/components/header';
+import { css } from 'styled-system/css';
 
 export default function WalletDetailPage({
   params,
@@ -26,56 +27,61 @@ export default function WalletDetailPage({
 
   if (!chainResult.success) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0d0d0d', color: '#fafafa' }}>
+      <>
         <Header />
         <main
-          style={{
-            maxWidth: '48rem',
-            margin: '0 auto',
-            padding: '2rem 1.5rem',
+          className={css({
+            maxW: '48rem',
+            mx: 'auto',
+            p: 'space.05',
+            px: 'space.04',
             textAlign: 'center',
-          }}
+          })}
         >
-          <p style={{ color: '#ef4444' }}>Invalid chain: {chainParam}</p>
+          <p className={css({ color: 'error.text' })}>Invalid chain: {chainParam}</p>
         </main>
-      </div>
+      </>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0d0d0d', color: '#fafafa' }}>
+    <>
       <Header />
-      <main style={{ maxWidth: '48rem', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <Link href="/" style={{ color: '#3b82f6', textDecoration: 'none', fontSize: '0.875rem' }}>
+      <main className={css({ maxW: '48rem', mx: 'auto', p: 'space.05', px: 'space.04' })}>
+        <Link href="/" className={css({ textStyle: 'label.01', color: 'accent.text' })}>
           &larr; Back to Portfolio
         </Link>
 
-        <div style={{ marginTop: '1.5rem' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{wallet?.label ?? 'Wallet'}</h1>
-          <p style={{ color: '#a3a3a3', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            {meta.name} &middot;{' '}
-            <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{address}</span>
+        <div className={css({ mt: 'space.05' })}>
+          <h1 className={css({ textStyle: 'heading.02' })}>{wallet?.label ?? 'Wallet'}</h1>
+          <p className={css({ textStyle: 'body.02', color: 'ink.text-secondary', mt: 'space.01' })}>
+            {meta.name} &middot; <span className={css({ fontFamily: 'mono' })}>{address}</span>
           </p>
         </div>
 
         <div
-          style={{
-            marginTop: '1.5rem',
-            padding: '1.5rem',
-            backgroundColor: '#2B2B2B',
-            borderRadius: '12px',
-            border: '1px solid #404040',
-          }}
+          className={css({
+            mt: 'space.05',
+            p: 'space.05',
+            bg: 'ink.component-bg-default',
+            borderRadius: 'lg',
+            border: '1px solid',
+            borderColor: 'ink.border-subtle',
+          })}
         >
-          <div style={{ fontSize: '0.875rem', color: '#a3a3a3', marginBottom: '0.5rem' }}>
+          <div
+            className={css({ textStyle: 'label.02', color: 'ink.text-secondary', mb: 'space.02' })}
+          >
             Balance
           </div>
           {isLoading ? (
-            <div style={{ color: '#737373' }}>Loading...</div>
+            <div className={css({ textStyle: 'body.01', color: 'ink.text-muted' })}>Loading...</div>
           ) : error ? (
-            <div style={{ color: '#ef4444' }}>Failed to load balance</div>
+            <div className={css({ textStyle: 'body.01', color: 'error.text' })}>
+              Failed to load balance
+            </div>
           ) : balance ? (
-            <div style={{ fontSize: '2rem', fontWeight: 700 }}>
+            <div className={css({ textStyle: 'mono.01' })}>
               {balance.balance} {meta.symbol}
             </div>
           ) : null}
@@ -87,21 +93,24 @@ export default function WalletDetailPage({
               removeWallet(wallet.id);
               window.location.href = '/';
             }}
-            style={{
-              marginTop: '2rem',
-              padding: '0.625rem 1rem',
-              backgroundColor: 'transparent',
-              color: '#ef4444',
-              border: '1px solid #ef4444',
-              borderRadius: '8px',
+            className={css({
+              mt: 'space.06',
+              px: 'space.04',
+              py: 'space.02',
+              bg: 'transparent',
+              color: 'error.text',
+              border: '1px solid',
+              borderColor: 'error.border',
+              borderRadius: 'md',
               cursor: 'pointer',
-              fontSize: '0.875rem',
-            }}
+              textStyle: 'label.01',
+              _hover: { bg: 'error.bg-subtle' },
+            })}
           >
             Remove Wallet
           </button>
         )}
       </main>
-    </div>
+    </>
   );
 }

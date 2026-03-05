@@ -18,6 +18,13 @@ body {
     system-ui,
     -apple-system,
     sans-serif;
+  background-color: var(--colors-ink-bg-primary);
+  color: var(--colors-ink-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
 }

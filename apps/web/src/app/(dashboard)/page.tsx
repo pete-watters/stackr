@@ -5,37 +5,38 @@ import { useWalletStore } from '@/lib/wallet-store';
 import { useBalances } from '@stackr/queries';
 import { Header } from '@/components/header';
 import { WalletCard } from '@/components/wallet-card';
+import { css } from 'styled-system/css';
 
 export default function DashboardPage() {
   const wallets = useWalletStore(s => s.wallets);
   const balanceQueries = useBalances(wallets);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0d0d0d', color: '#fafafa' }}>
+    <>
       <Header />
-      <main style={{ maxWidth: '48rem', margin: '0 auto', padding: '2rem 1.5rem' }}>
+      <main className={css({ maxW: '48rem', mx: 'auto', p: 'space.05', px: 'space.04' })}>
         <div
-          style={{
+          className={css({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '1.5rem',
-          }}
+            mb: 'space.05',
+          })}
         >
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Portfolio</h1>
+          <h1 className={css({ textStyle: 'heading.02' })}>Portfolio</h1>
           <Link
             href="/wallet/add"
-            style={{
+            className={css({
               display: 'inline-flex',
               alignItems: 'center',
-              padding: '0.5rem 1rem',
-              backgroundColor: '#3b82f6',
+              px: 'space.04',
+              py: 'space.02',
+              bg: 'accent.solid-default',
               color: 'white',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-            }}
+              borderRadius: 'md',
+              textStyle: 'label.01',
+              _hover: { bg: 'accent.solid-hover' },
+            })}
           >
             + Add Wallet
           </Link>
@@ -43,21 +44,23 @@ export default function DashboardPage() {
 
         {wallets.length === 0 ? (
           <div
-            style={{
+            className={css({
               textAlign: 'center',
-              padding: '4rem 2rem',
-              border: '1px dashed #404040',
-              borderRadius: '12px',
-              color: '#737373',
-            }}
+              py: 'space.09',
+              px: 'space.05',
+              border: '1px dashed',
+              borderColor: 'ink.border-subtle',
+              borderRadius: 'lg',
+              color: 'ink.text-muted',
+            })}
           >
-            <p style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>No wallets yet</p>
-            <p style={{ fontSize: '0.875rem' }}>
+            <p className={css({ textStyle: 'body.01', mb: 'space.02' })}>No wallets yet</p>
+            <p className={css({ textStyle: 'body.02' })}>
               Add your first wallet to start tracking your portfolio.
             </p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div className={css({ display: 'flex', flexDirection: 'column', gap: 'space.03' })}>
             {wallets.map((wallet, i) => (
               <WalletCard
                 key={wallet.id}
@@ -69,6 +72,6 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
-    </div>
+    </>
   );
 }
