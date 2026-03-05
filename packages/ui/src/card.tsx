@@ -1,14 +1,19 @@
-import type { HTMLAttributes } from 'react';
+import { type HTMLAttributes, forwardRef } from 'react';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   interactive?: boolean;
 }
 
-export function Card({ interactive, className, ...props }: CardProps) {
-  return (
-    <div
-      className={`card ${interactive ? 'card--interactive' : ''} ${className ?? ''}`}
-      {...props}
-    />
-  );
-}
+export const Card = forwardRef<HTMLDivElement, CardProps>(
+  ({ interactive, className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={`card ${interactive ? 'card--interactive' : ''} ${className ?? ''}`.trim()}
+        {...props}
+      />
+    );
+  },
+);
+
+Card.displayName = 'Card';
