@@ -1,20 +1,21 @@
 import Link from 'next/link';
+import { css } from 'styled-system/css';
 
 export default function NotFound() {
   return (
     <main
-      style={{
+      className={css({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '100vh',
-        gap: '1rem',
-      }}
+        minH: '100vh',
+        gap: 'space.04',
+      })}
     >
-      <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>404</h1>
-      <p style={{ color: '#a3a3a3' }}>Page not found</p>
-      <Link href="/" style={{ color: '#3b82f6' }}>
+      <h1 className={css({ textStyle: 'heading.01' })}>404</h1>
+      <p className={css({ textStyle: 'body.01', color: 'ink.text-secondary' })}>Page not found</p>
+      <Link href="/" className={css({ textStyle: 'label.01', color: 'accent.text' })}>
         Go home
       </Link>
     </main>

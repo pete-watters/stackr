@@ -6,6 +6,7 @@ import type { Chain } from '@stackr/models';
 import { ChainSchema, chainMeta } from '@stackr/models';
 import { useWalletStore } from '@/lib/wallet-store';
 import { Header } from '@/components/header';
+import { css } from 'styled-system/css';
 
 const chains = ChainSchema.options;
 
@@ -24,26 +25,40 @@ export default function AddWalletPage() {
     router.push('/');
   };
 
+  const labelStyles = css({
+    display: 'block',
+    textStyle: 'label.02',
+    color: 'ink.text-secondary',
+    mb: 'space.01',
+  });
+
+  const inputStyles = css({
+    w: '100%',
+    px: 'space.03',
+    py: 'space.02',
+    bg: 'ink.bg-primary',
+    border: '1px solid',
+    borderColor: 'ink.border-default',
+    borderRadius: 'md',
+    color: 'ink.text-primary',
+    textStyle: 'body.02',
+    outline: 'none',
+    _focus: { borderColor: 'accent.solid-default' },
+    _placeholder: { color: 'ink.text-muted' },
+  });
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0d0d0d', color: '#fafafa' }}>
+    <>
       <Header />
-      <main style={{ maxWidth: '32rem', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Add Wallet</h1>
+      <main className={css({ maxW: '32rem', mx: 'auto', p: 'space.05', px: 'space.04' })}>
+        <h1 className={css({ textStyle: 'heading.02', mb: 'space.05' })}>Add Wallet</h1>
 
         <form
           onSubmit={handleSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          className={css({ display: 'flex', flexDirection: 'column', gap: 'space.04' })}
         >
           <div>
-            <label
-              htmlFor="label"
-              style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                color: '#a3a3a3',
-                marginBottom: '0.375rem',
-              }}
-            >
+            <label htmlFor="label" className={labelStyles}>
               Label
             </label>
             <input
@@ -53,45 +68,19 @@ export default function AddWalletPage() {
               onChange={e => setLabel(e.target.value)}
               placeholder="e.g. My Bitcoin Wallet"
               required
-              style={{
-                width: '100%',
-                padding: '0.625rem 0.75rem',
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #404040',
-                borderRadius: '8px',
-                color: '#fafafa',
-                fontSize: '0.875rem',
-                outline: 'none',
-              }}
+              className={inputStyles}
             />
           </div>
 
           <div>
-            <label
-              htmlFor="chain"
-              style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                color: '#a3a3a3',
-                marginBottom: '0.375rem',
-              }}
-            >
+            <label htmlFor="chain" className={labelStyles}>
               Chain
             </label>
             <select
               id="chain"
               value={chain}
               onChange={e => setChain(e.target.value as Chain)}
-              style={{
-                width: '100%',
-                padding: '0.625rem 0.75rem',
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #404040',
-                borderRadius: '8px',
-                color: '#fafafa',
-                fontSize: '0.875rem',
-                outline: 'none',
-              }}
+              className={inputStyles}
             >
               {chains.map(c => (
                 <option key={c} value={c}>
@@ -102,15 +91,7 @@ export default function AddWalletPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="address"
-              style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                color: '#a3a3a3',
-                marginBottom: '0.375rem',
-              }}
-            >
+            <label htmlFor="address" className={labelStyles}>
               Address
             </label>
             <input
@@ -120,38 +101,42 @@ export default function AddWalletPage() {
               onChange={e => setAddress(e.target.value)}
               placeholder="Enter wallet address"
               required
-              style={{
-                width: '100%',
-                padding: '0.625rem 0.75rem',
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #404040',
-                borderRadius: '8px',
-                color: '#fafafa',
-                fontSize: '0.875rem',
-                fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+              className={css({
+                w: '100%',
+                px: 'space.03',
+                py: 'space.02',
+                bg: 'ink.bg-primary',
+                border: '1px solid',
+                borderColor: 'ink.border-default',
+                borderRadius: 'md',
+                color: 'ink.text-primary',
+                textStyle: 'mono.03',
                 outline: 'none',
-              }}
+                _focus: { borderColor: 'accent.solid-default' },
+                _placeholder: { color: 'ink.text-muted' },
+              })}
             />
           </div>
 
           <button
             type="submit"
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#3b82f6',
+            className={css({
+              px: 'space.05',
+              py: 'space.03',
+              bg: 'accent.solid-default',
               color: 'white',
               border: 'none',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-              fontWeight: 600,
+              borderRadius: 'md',
+              textStyle: 'label.01',
               cursor: 'pointer',
-              marginTop: '0.5rem',
-            }}
+              mt: 'space.02',
+              _hover: { bg: 'accent.solid-hover' },
+            })}
           >
             Add Wallet
           </button>
         </form>
       </main>
-    </div>
+    </>
   );
 }

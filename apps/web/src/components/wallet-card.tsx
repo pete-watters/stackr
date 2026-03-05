@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { Wallet, Balance } from '@stackr/models';
 import { chainMeta } from '@stackr/models';
+import { css } from 'styled-system/css';
 
 interface WalletCardProps {
   wallet: Wallet;
@@ -12,38 +13,55 @@ interface WalletCardProps {
 
 export function WalletCard({ wallet, balance, isLoading }: WalletCardProps) {
   const meta = chainMeta[wallet.chain];
-  const truncatedAddress = `${wallet.address.slice(0, 6)}...${wallet.address.slice(-4)}`;
+  const truncatedAddress = `${wallet.address.slice(0, 6)}\u2026${wallet.address.slice(-4)}`;
 
   return (
     <Link
       href={`/wallet/${wallet.chain}/${wallet.address}`}
-      style={{
+      className={css({
         display: 'block',
-        padding: '1rem',
-        borderRadius: '12px',
-        border: '1px solid #404040',
-        backgroundColor: '#2B2B2B',
-        textDecoration: 'none',
-        color: 'inherit',
-        transition: 'border-color 0.15s ease',
-      }}
+        p: 'space.04',
+        borderRadius: 'lg',
+        border: '1px solid',
+        borderColor: 'ink.border-subtle',
+        bg: 'ink.component-bg-default',
+        transition: 'all 0.15s ease',
+        _hover: { borderColor: 'accent.border' },
+      })}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        className={css({
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        })}
+      >
         <div>
-          <div style={{ fontWeight: 600, color: '#fafafa' }}>{wallet.label}</div>
-          <div style={{ fontSize: '0.75rem', color: '#a3a3a3', marginTop: '0.25rem' }}>
-            {meta.name} &middot; {truncatedAddress}
+          <div className={css({ textStyle: 'label.01', color: 'ink.text-primary' })}>
+            {wallet.label}
+          </div>
+          <div
+            className={css({
+              textStyle: 'caption.01',
+              color: 'ink.text-secondary',
+              mt: 'space.01',
+            })}
+          >
+            {meta.name} &middot;{' '}
+            <span className={css({ fontFamily: 'mono' })}>{truncatedAddress}</span>
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
+        <div className={css({ textAlign: 'right' })}>
           {isLoading ? (
-            <div style={{ color: '#737373', fontSize: '0.875rem' }}>Loading...</div>
+            <span className={css({ textStyle: 'body.02', color: 'ink.text-muted' })}>
+              Loading...
+            </span>
           ) : balance ? (
-            <div style={{ fontWeight: 600, color: '#fafafa' }}>
+            <span className={css({ textStyle: 'mono.02', color: 'ink.text-primary' })}>
               {balance.balance} {meta.symbol}
-            </div>
+            </span>
           ) : (
-            <div style={{ color: '#737373', fontSize: '0.875rem' }}>&mdash;</div>
+            <span className={css({ textStyle: 'body.02', color: 'ink.text-muted' })}>&mdash;</span>
           )}
         </div>
       </div>
