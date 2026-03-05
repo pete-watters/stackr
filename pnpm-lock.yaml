@@ -208,6 +208,12 @@ importers:
       '@pandacss/dev':
         specifier: ^0.48.1
         version: 0.48.1(jsdom@28.1.0(@noble/hashes@1.8.0))(typescript@5.9.3)
+      '@radix-ui/colors':
+        specifier: ^3.0.0
+        version: 3.0.0
+      '@stackr/tokens':
+        specifier: workspace:*
+        version: link:../tokens
     devDependencies:
       '@stackr/eslint-config':
         specifier: workspace:*
