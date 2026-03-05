@@ -22,7 +22,9 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@pandacss/dev": "^0.48.1"
+    "@pandacss/dev": "^0.48.1",
+    "@radix-ui/colors": "^3.0.0",
+    "@stackr/tokens": "workspace:*"
   },
   "devDependencies": {
     "@stackr/tsconfig-config": "workspace:*",

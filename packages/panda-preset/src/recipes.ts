@@ -10,6 +10,7 @@ export const buttonRecipe = defineRecipe({
     borderRadius: 'md',
     cursor: 'pointer',
     transition: 'all 0.15s ease',
+    textStyle: 'label.01',
     _disabled: {
       opacity: 0.5,
       cursor: 'not-allowed',
@@ -18,27 +19,32 @@ export const buttonRecipe = defineRecipe({
   variants: {
     variant: {
       primary: {
-        bg: 'accent',
+        bg: 'accent.solid-default',
         color: 'white',
-        _hover: { bg: 'accent.hover' },
+        _hover: { bg: 'accent.solid-hover' },
       },
       secondary: {
-        bg: 'bg.secondary',
-        color: 'text.primary',
+        bg: 'ink.component-bg-default',
+        color: 'ink.text-primary',
         border: '1px solid',
-        borderColor: 'border',
-        _hover: { bg: 'bg.card' },
+        borderColor: 'ink.border-default',
+        _hover: { bg: 'ink.component-bg-hover' },
       },
       ghost: {
         bg: 'transparent',
-        color: 'text.primary',
-        _hover: { bg: 'bg.secondary' },
+        color: 'ink.text-primary',
+        _hover: { bg: 'ink.component-bg-hover' },
+      },
+      danger: {
+        bg: 'error.solid-default',
+        color: 'white',
+        _hover: { opacity: 0.9 },
       },
     },
     size: {
-      sm: { px: '3', py: '1.5', fontSize: 'sm' },
-      md: { px: '4', py: '2', fontSize: 'md' },
-      lg: { px: '6', py: '3', fontSize: 'lg' },
+      sm: { px: 'space.03', py: 'space.01', fontSize: 'sm' },
+      md: { px: 'space.04', py: 'space.02', fontSize: 'md' },
+      lg: { px: 'space.05', py: 'space.03', fontSize: 'lg' },
     },
   },
   defaultVariants: {
@@ -50,18 +56,18 @@ export const buttonRecipe = defineRecipe({
 export const cardRecipe = defineRecipe({
   className: 'card',
   base: {
-    bg: 'bg.card',
+    bg: 'ink.component-bg-default',
     borderRadius: 'lg',
     border: '1px solid',
-    borderColor: 'border',
-    p: '4',
+    borderColor: 'ink.border-subtle',
+    p: 'space.04',
   },
   variants: {
     interactive: {
       true: {
         cursor: 'pointer',
         transition: 'all 0.15s ease',
-        _hover: { borderColor: 'accent' },
+        _hover: { borderColor: 'accent.border' },
       },
     },
   },
@@ -71,18 +77,18 @@ export const inputRecipe = defineRecipe({
   className: 'input',
   base: {
     width: '100%',
-    bg: 'bg.input',
-    color: 'text.primary',
+    bg: 'ink.bg-primary',
+    color: 'ink.text-primary',
     border: '1px solid',
-    borderColor: 'border',
+    borderColor: 'ink.border-default',
     borderRadius: 'md',
-    px: '3',
-    py: '2',
-    fontSize: 'md',
+    px: 'space.03',
+    py: 'space.02',
+    textStyle: 'body.02',
     outline: 'none',
     transition: 'border-color 0.15s ease',
-    _focus: { borderColor: 'accent' },
-    _placeholder: { color: 'text.muted' },
+    _focus: { borderColor: 'accent.solid-default' },
+    _placeholder: { color: 'ink.text-muted' },
   },
 });
 
