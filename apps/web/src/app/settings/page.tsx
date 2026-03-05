@@ -1,32 +1,34 @@
 'use client';
 
 import { Header } from '@/components/header';
+import { css } from 'styled-system/css';
 
 export default function SettingsPage() {
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0d0d0d', color: '#fafafa' }}>
+    <>
       <Header />
-      <main style={{ maxWidth: '32rem', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Settings</h1>
+      <main className={css({ maxW: '32rem', mx: 'auto', p: 'space.05', px: 'space.04' })}>
+        <h1 className={css({ textStyle: 'heading.02', mb: 'space.05' })}>Settings</h1>
 
         <div
-          style={{
-            padding: '1rem',
-            backgroundColor: '#2B2B2B',
-            borderRadius: '12px',
-            border: '1px solid #404040',
-          }}
+          className={css({
+            p: 'space.04',
+            bg: 'ink.component-bg-default',
+            borderRadius: 'lg',
+            border: '1px solid',
+            borderColor: 'ink.border-subtle',
+          })}
         >
-          <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>API Keys</h2>
+          <h2 className={css({ textStyle: 'label.01', mb: 'space.03' })}>API Keys</h2>
           <div>
             <label
               htmlFor="etherscan-key"
-              style={{
+              className={css({
                 display: 'block',
-                fontSize: '0.875rem',
-                color: '#a3a3a3',
-                marginBottom: '0.375rem',
-              }}
+                textStyle: 'label.02',
+                color: 'ink.text-secondary',
+                mb: 'space.01',
+              })}
             >
               Etherscan API Key (optional)
             </label>
@@ -34,20 +36,24 @@ export default function SettingsPage() {
               id="etherscan-key"
               type="text"
               placeholder="Enter your Etherscan API key"
-              style={{
-                width: '100%',
-                padding: '0.625rem 0.75rem',
-                backgroundColor: '#1a1a1a',
-                border: '1px solid #404040',
-                borderRadius: '8px',
-                color: '#fafafa',
-                fontSize: '0.875rem',
+              className={css({
+                w: '100%',
+                px: 'space.03',
+                py: 'space.02',
+                bg: 'ink.bg-primary',
+                border: '1px solid',
+                borderColor: 'ink.border-default',
+                borderRadius: 'md',
+                color: 'ink.text-primary',
+                textStyle: 'body.02',
                 outline: 'none',
-              }}
+                _focus: { borderColor: 'accent.solid-default' },
+                _placeholder: { color: 'ink.text-muted' },
+              })}
             />
           </div>
         </div>
       </main>
-    </div>
+    </>
   );
 }
