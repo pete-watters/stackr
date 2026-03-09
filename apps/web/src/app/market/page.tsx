@@ -5,8 +5,7 @@ import { useOrderbook } from '@stackr/queries';
 import { DepthChart } from '@stackr/charts/react';
 import { Header } from '@/components/header';
 import { Orderbook } from '@/components/orderbook';
-import { Skeleton } from '@stackr/ui';
-import { css } from 'styled-system/css';
+import { Skeleton, Card } from '@stackr/ui';
 
 const pairs = [
   { label: 'BTC/USD', value: 'BTC/USD', midPrice: 50000 },
@@ -28,33 +27,17 @@ export default function MarketPage() {
   return (
     <>
       <Header />
-      <main className={css({ maxW: '72rem', mx: 'auto', p: 'space.05', px: 'space.04' })}>
-        <div
-          className={css({
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 'space.05',
-          })}
-        >
-          <h1 className={css({ textStyle: 'heading.02' })}>Market</h1>
-          <div className={css({ display: 'flex', gap: 'space.02', alignItems: 'center' })}>
+      <main className="mx-auto max-w-6xl px-4 py-6">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Market</h1>
+          <div className="flex items-center gap-2">
             <select
               value={selectedPair.value}
               onChange={e => {
                 const found = pairs.find(p => p.value === e.target.value);
                 if (found) setSelectedPair(found);
               }}
-              className={css({
-                px: 'space.03',
-                py: 'space.02',
-                bg: 'ink.bg-primary',
-                border: '1px solid',
-                borderColor: 'ink.border-default',
-                borderRadius: 'md',
-                color: 'ink.text-primary',
-                textStyle: 'label.01',
-              })}
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm font-semibold"
             >
               {pairs.map(p => (
                 <option key={p.value} value={p.value}>
@@ -64,17 +47,11 @@ export default function MarketPage() {
             </select>
             <button
               onClick={() => setMode(m => (m === 'mock' ? 'live' : 'mock'))}
-              className={css({
-                px: 'space.03',
-                py: 'space.02',
-                bg: mode === 'live' ? 'success.bg-subtle' : 'ink.component-bg-default',
-                border: '1px solid',
-                borderColor: mode === 'live' ? 'success.border' : 'ink.border-default',
-                borderRadius: 'md',
-                color: mode === 'live' ? 'success.text' : 'ink.text-secondary',
-                textStyle: 'caption.01',
-                cursor: 'pointer',
-              })}
+              className={`px-3 py-2 rounded-md border text-xs cursor-pointer transition-colors ${
+                mode === 'live'
+                  ? 'bg-success/15 border-success/30 text-success'
+                  : 'bg-secondary border-input text-muted-foreground'
+              }`}
             >
               {mode === 'live' ? 'Live' : 'Mock'}
             </button>
@@ -82,39 +59,21 @@ export default function MarketPage() {
         </div>
 
         {!orderbook ? (
-          <div className={css({ display: 'flex', gap: 'space.04' })}>
-            <Skeleton width="50%" height={400} className="skeleton" />
-            <Skeleton width="50%" height={400} className="skeleton" />
+          <div className="flex gap-4">
+            <Skeleton width="50%" height={400} />
+            <Skeleton width="50%" height={400} />
           </div>
         ) : (
-          <div
-            className={css({
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: 'space.04',
-              lg: { gridTemplateColumns: '1fr 1fr' },
-              smDown: { gridTemplateColumns: '1fr' },
-            })}
-          >
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Orderbook orderbook={orderbook} />
-            <div
-              className={css({
-                bg: 'ink.component-bg-default',
-                borderRadius: 'lg',
-                border: '1px solid',
-                borderColor: 'ink.border-subtle',
-                p: 'space.03',
-              })}
-            >
-              <div className={css({ textStyle: 'label.01', mb: 'space.03' })}>
-                Depth Chart — {selectedPair.label}
-              </div>
+            <Card className="p-4">
+              <div className="text-sm font-semibold mb-3">Depth Chart — {selectedPair.label}</div>
               <DepthChart
                 bids={orderbook.bids}
                 asks={orderbook.asks}
                 dimensions={{ width: 500, height: 300 }}
               />
-            </div>
+            </Card>
           </div>
         )}
       </main>

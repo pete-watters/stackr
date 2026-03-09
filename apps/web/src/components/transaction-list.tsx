@@ -4,7 +4,6 @@ import type { Transaction, Chain } from '@stackr/models';
 import { chainMeta } from '@stackr/models';
 import { getExplorerUrl } from '@stackr/services';
 import { ItemLayout, Skeleton } from '@stackr/ui';
-import { css } from 'styled-system/css';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -35,9 +34,9 @@ export function TransactionList({ transactions, chain, isLoading }: TransactionL
 
   if (isLoading) {
     return (
-      <div className={css({ display: 'flex', flexDirection: 'column', gap: 'space.02' })}>
+      <div className="flex flex-col gap-2">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} width="100%" height={48} className="skeleton" />
+          <Skeleton key={i} width="100%" height={48} />
         ))}
       </div>
     );
@@ -45,65 +44,39 @@ export function TransactionList({ transactions, chain, isLoading }: TransactionL
 
   if (transactions.length === 0) {
     return (
-      <div
-        className={css({
-          textStyle: 'body.02',
-          color: 'ink.text-muted',
-          py: 'space.04',
-          textAlign: 'center',
-        })}
-      >
-        No transactions found
-      </div>
+      <div className="text-sm text-muted-foreground py-4 text-center">No transactions found</div>
     );
   }
 
   return (
-    <div className={css({ display: 'flex', flexDirection: 'column', gap: 'space.01' })}>
+    <div className="flex flex-col gap-1">
       {transactions.map(tx => (
         <a
           key={tx.hash}
           href={getExplorerUrl(chain, 'tx', tx.hash)}
           target="_blank"
           rel="noopener noreferrer"
-          className={css({
-            display: 'block',
-            p: 'space.03',
-            borderRadius: 'md',
-            transition: 'background 0.1s ease',
-            _hover: { bg: 'ink.component-bg-hover' },
-          })}
+          className="block p-3 rounded-md transition-colors hover:bg-muted/50"
         >
           <ItemLayout
             titleLeft={
-              <div className={css({ display: 'flex', alignItems: 'center', gap: 'space.02' })}>
+              <div className="flex items-center gap-2">
                 <span
-                  className={css({
-                    textStyle: 'label.02',
-                    color: tx.type === 'receive' ? 'success.text' : 'error.text',
-                  })}
+                  className={`text-sm font-medium ${tx.type === 'receive' ? 'text-success' : 'text-destructive'}`}
                 >
                   {tx.type === 'receive' ? '\u2193 Received' : '\u2191 Sent'}
                 </span>
                 {!tx.confirmed && (
-                  <span
-                    className={css({
-                      textStyle: 'caption.01',
-                      color: 'warning.text',
-                      bg: 'warning.bg-subtle',
-                      px: 'space.01',
-                      borderRadius: 'sm',
-                    })}
-                  >
+                  <span className="text-xs text-warning bg-warning/15 px-1 rounded-sm">
                     Pending
                   </span>
                 )}
               </div>
             }
             captionLeft={
-              <span className={css({ textStyle: 'caption.01', color: 'ink.text-muted' })}>
+              <span className="text-xs text-muted-foreground">
                 {tx.counterparty !== 'unknown' ? (
-                  <span className={css({ fontFamily: 'mono' })}>
+                  <span className="font-mono">
                     {tx.counterparty.slice(0, 8)}&hellip;{tx.counterparty.slice(-4)}
                   </span>
                 ) : (
@@ -113,17 +86,14 @@ export function TransactionList({ transactions, chain, isLoading }: TransactionL
             }
             titleRight={
               <span
-                className={css({
-                  textStyle: 'mono.03',
-                  color: tx.type === 'receive' ? 'success.text' : 'ink.text-primary',
-                })}
+                className={`font-mono text-xs ${tx.type === 'receive' ? 'text-success' : 'text-foreground'}`}
               >
                 {tx.type === 'receive' ? '+' : '-'}
                 {tx.amount} {meta.symbol}
               </span>
             }
             captionRight={
-              <span className={css({ textStyle: 'caption.01', color: 'ink.text-muted' })}>
+              <span className="text-xs text-muted-foreground">
                 {formatRelativeTime(tx.timestamp)}
               </span>
             }

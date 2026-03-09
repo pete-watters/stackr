@@ -1,40 +1,31 @@
 'use client';
 
 import Link from 'next/link';
-import { css } from 'styled-system/css';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function Header() {
   return (
-    <header
-      className={css({
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        px: 'space.04',
-        py: 'space.03',
-        borderBottom: '1px solid',
-        borderColor: 'ink.border-subtle',
-      })}
-    >
-      <Link href="/" className={css({ textStyle: 'heading.03', color: 'ink.text-primary' })}>
+    <header className="flex items-center justify-between border-b px-4 py-3">
+      <Link href="/" className="text-xl font-bold text-foreground">
         Stackr
       </Link>
-      <nav className={css({ display: 'flex', gap: 'space.04' })}>
-        <Link href="/wallet/add" className={css({ textStyle: 'label.01', color: 'accent.text' })}>
+      <nav className="flex items-center gap-4">
+        <Link href="/wallet/add" className="text-sm font-semibold text-primary">
           Add Wallet
         </Link>
         <Link
           href="/market"
-          className={css({ textStyle: 'label.01', color: 'ink.text-secondary' })}
+          className="text-sm font-semibold text-muted-foreground hover:text-foreground"
         >
           Market
         </Link>
         <Link
           href="/settings"
-          className={css({ textStyle: 'label.01', color: 'ink.text-secondary' })}
+          className="text-sm font-semibold text-muted-foreground hover:text-foreground"
         >
           Settings
         </Link>
+        <ThemeToggle />
       </nav>
     </header>
   );
