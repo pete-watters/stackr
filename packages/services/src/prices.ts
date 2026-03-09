@@ -1,4 +1,4 @@
-import type { Chain, Price, PriceHistoryPoint } from '@stackr/models';
+import type { Chain, Currency, Price, PriceHistoryPoint } from '@stackr/models';
 
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
 
@@ -9,9 +9,9 @@ const chainToCoinGeckoId: Record<Chain, string> = {
   sol: 'solana',
 };
 
-export async function fetchPrices(chains: Chain[]): Promise<Price[]> {
+export async function fetchPrices(chains: Chain[], currency: Currency = 'usd'): Promise<Price[]> {
   const ids = chains.map(c => chainToCoinGeckoId[c]).join(',');
-  const url = `${COINGECKO_BASE}/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`;
+  const url = `${COINGECKO_BASE}/simple/price?ids=${ids}&vs_currencies=${currency},usd&include_24hr_change=true`;
   const res = await fetch(url);
 
   if (!res.ok) {
@@ -28,6 +28,8 @@ export async function fetchPrices(chains: Chain[]): Promise<Price[]> {
     return {
       chain,
       usdPrice: entry?.usd ?? 0,
+      fiatPrice: entry?.[currency] ?? entry?.usd ?? 0,
+      currency,
       change24h: entry?.usd_24h_change ?? 0,
       updatedAt: now,
     };
@@ -37,9 +39,10 @@ export async function fetchPrices(chains: Chain[]): Promise<Price[]> {
 export async function fetchPriceHistory(
   chain: Chain,
   days: number = 7,
+  currency: Currency = 'usd',
 ): Promise<PriceHistoryPoint[]> {
   const id = chainToCoinGeckoId[chain];
-  const url = `${COINGECKO_BASE}/coins/${id}/market_chart?vs_currency=usd&days=${days}`;
+  const url = `${COINGECKO_BASE}/coins/${id}/market_chart?vs_currency=${currency}&days=${days}`;
   const res = await fetch(url);
 
   if (!res.ok) {

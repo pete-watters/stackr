@@ -14,23 +14,24 @@ import { PortfolioBreakdown } from '@/components/portfolio-breakdown';
 export default function DashboardPage() {
   const wallets = useWalletStore(s => s.wallets);
   const etherscanApiKey = useSettingsStore(s => s.etherscanApiKey);
+  const currency = useSettingsStore(s => s.currency);
   const balanceQueries = useBalances(wallets, {
     ethApiKey: etherscanApiKey || undefined,
   });
 
   const uniqueChains = [...new Set(wallets.map(w => w.chain))] as Chain[];
-  const { data: prices } = usePrices(uniqueChains);
+  const { data: prices } = usePrices(uniqueChains, currency);
 
   const primaryChain = uniqueChains[0];
-  const { data: priceHistory } = usePriceHistory(primaryChain ?? 'btc', 7);
+  const { data: priceHistory } = usePriceHistory(primaryChain ?? 'btc', 7, currency);
 
   const priceMap = new Map(prices?.map(p => [p.chain, p]) ?? []);
 
-  const totalUsd = wallets.reduce((sum, wallet, i) => {
+  const totalFiat = wallets.reduce((sum, wallet, i) => {
     const balance = balanceQueries[i]?.data;
     const price = priceMap.get(wallet.chain);
     if (balance && price) {
-      return sum + parseFloat(balance.balance) * price.usdPrice;
+      return sum + parseFloat(balance.balance) * price.fiatPrice;
     }
     return sum;
   }, 0);
@@ -38,13 +39,13 @@ export default function DashboardPage() {
   const allLoaded = balanceQueries.every(q => !q.isLoading);
 
   const weightedChange =
-    totalUsd > 0
+    totalFiat > 0
       ? wallets.reduce((acc, wallet, i) => {
           const balance = balanceQueries[i]?.data;
           const price = priceMap.get(wallet.chain);
           if (balance && price) {
-            const value = parseFloat(balance.balance) * price.usdPrice;
-            return acc + (price.change24h * value) / totalUsd;
+            const value = parseFloat(balance.balance) * price.fiatPrice;
+            return acc + (price.change24h * value) / totalFiat;
           }
           return acc;
         }, 0)
@@ -53,19 +54,19 @@ export default function DashboardPage() {
   const allocations = uniqueChains
     .map(chain => {
       const chainWallets = wallets.map((w, i) => ({ w, i })).filter(({ w }) => w.chain === chain);
-      const usdValue = chainWallets.reduce((sum, { i }) => {
+      const fiatValue = chainWallets.reduce((sum, { i }) => {
         const balance = balanceQueries[i]?.data;
         const price = priceMap.get(chain);
-        if (balance && price) return sum + parseFloat(balance.balance) * price.usdPrice;
+        if (balance && price) return sum + parseFloat(balance.balance) * price.fiatPrice;
         return sum;
       }, 0);
       return {
         chain,
-        usdValue,
-        percentage: totalUsd > 0 ? (usdValue / totalUsd) * 100 : 0,
+        fiatValue,
+        percentage: totalFiat > 0 ? (fiatValue / totalFiat) * 100 : 0,
       };
     })
-    .filter(a => a.usdValue > 0);
+    .filter(a => a.fiatValue > 0);
 
   const sparklineValues = priceHistory?.map(p => p.price);
 
@@ -88,14 +89,15 @@ export default function DashboardPage() {
         ) : (
           <>
             <PortfolioSummary
-              totalUsd={totalUsd}
+              totalFiat={totalFiat}
+              currency={currency}
               change24h={allLoaded ? weightedChange : undefined}
               sparklineData={sparklineValues}
               isLoading={!allLoaded}
             />
 
             {allLoaded && allocations.length > 0 && (
-              <PortfolioBreakdown allocations={allocations} />
+              <PortfolioBreakdown allocations={allocations} currency={currency} />
             )}
 
             <div className="flex flex-col gap-3">
@@ -106,6 +108,7 @@ export default function DashboardPage() {
                   balance={balanceQueries[i]?.data}
                   isLoading={balanceQueries[i]?.isLoading}
                   price={priceMap.get(wallet.chain)}
+                  currency={currency}
                 />
               ))}
             </div>

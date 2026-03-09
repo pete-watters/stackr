@@ -1,17 +1,18 @@
 'use client';
 
 import { chainMeta } from '@stackr/models';
-import type { Chain } from '@stackr/models';
+import type { Chain, Currency } from '@stackr/models';
 import { Card } from '@stackr/ui';
 
 interface Allocation {
   chain: Chain;
-  usdValue: number;
+  fiatValue: number;
   percentage: number;
 }
 
 interface PortfolioBreakdownProps {
   allocations: Allocation[];
+  currency: Currency;
 }
 
 const chainBarColors: Record<Chain, string> = {
