@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import type { Wallet, Balance, Price } from '@stackr/models';
+import type { Wallet, Balance, Price, Currency } from '@stackr/models';
 import { chainMeta } from '@stackr/models';
-import { formatUsd, formatChange } from '@stackr/services';
+import { formatFiat, formatChange } from '@stackr/services';
 import { ChainAvatar, ItemLayout, Skeleton } from '@stackr/ui';
 import { Sparkline } from '@stackr/charts/react';
 
@@ -13,13 +13,21 @@ interface WalletCardProps {
   isLoading?: boolean;
   price?: Price;
   sparklineData?: number[];
+  currency?: Currency;
 }
 
-export function WalletCard({ wallet, balance, isLoading, price, sparklineData }: WalletCardProps) {
+export function WalletCard({
+  wallet,
+  balance,
+  isLoading,
+  price,
+  sparklineData,
+  currency = 'usd',
+}: WalletCardProps) {
   const meta = chainMeta[wallet.chain];
   const truncatedAddress = `${wallet.address.slice(0, 6)}\u2026${wallet.address.slice(-4)}`;
 
-  const usdValue = balance && price ? parseFloat(balance.balance) * price.usdPrice : undefined;
+  const fiatValue = balance && price ? parseFloat(balance.balance) * price.fiatPrice : undefined;
 
   return (
     <Link
@@ -54,9 +62,9 @@ export function WalletCard({ wallet, balance, isLoading, price, sparklineData }:
           captionRight={
             isLoading ? (
               <Skeleton width={60} height="0.875em" />
-            ) : usdValue !== undefined ? (
+            ) : fiatValue !== undefined ? (
               <span className="text-xs text-muted-foreground">
-                {formatUsd(usdValue)}
+                {formatFiat(fiatValue, currency)}
                 {price && (
                   <span
                     className={`ml-1 ${price.change24h >= 0 ? 'text-success' : 'text-destructive'}`}

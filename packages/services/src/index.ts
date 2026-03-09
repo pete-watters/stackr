@@ -9,7 +9,7 @@ export { fetchStxBalance } from './stx.js';
 export { fetchEthBalance } from './eth.js';
 export { fetchSolBalance } from './sol.js';
 export { fetchPrices, fetchPriceHistory } from './prices.js';
-export { formatUsd, formatCrypto, formatChange } from './format.js';
+export { formatFiat, formatUsd, formatCrypto, formatChange } from './format.js';
 export {
   serializeOrderBook,
   generateMockOrderBook,
