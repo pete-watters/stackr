@@ -18,6 +18,13 @@ export {
 } from './orderbook.js';
 export { fetchTransactions } from './transactions.js';
 export { getExplorerUrl } from './explorers.js';
+export {
+  searchStocks,
+  fetchStockQuote,
+  fetchStockQuotes,
+  type StockSearchResult,
+  type StockQuote,
+} from './stocks.js';
 
 export interface FetchBalanceOptions {
   ethApiKey?: string;
