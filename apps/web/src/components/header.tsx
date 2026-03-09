@@ -14,6 +14,12 @@ export function Header() {
           Add Wallet
         </Link>
         <Link
+          href="/holdings"
+          className="text-sm font-semibold text-muted-foreground hover:text-foreground"
+        >
+          Holdings
+        </Link>
+        <Link
           href="/market"
           className="text-sm font-semibold text-muted-foreground hover:text-foreground"
         >
