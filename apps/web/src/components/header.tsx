@@ -24,6 +24,12 @@ export function Header() {
           Add Wallet
         </Link>
         <Link
+          href="/market"
+          className={css({ textStyle: 'label.01', color: 'ink.text-secondary' })}
+        >
+          Market
+        </Link>
+        <Link
           href="/settings"
           className={css({ textStyle: 'label.01', color: 'ink.text-secondary' })}
         >

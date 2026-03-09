@@ -8,6 +8,16 @@ export { fetchBtcBalance } from './btc.js';
 export { fetchStxBalance } from './stx.js';
 export { fetchEthBalance } from './eth.js';
 export { fetchSolBalance } from './sol.js';
+export { fetchPrices, fetchPriceHistory } from './prices.js';
+export { formatUsd, formatCrypto, formatChange } from './format.js';
+export {
+  serializeOrderBook,
+  generateMockOrderBook,
+  createKrakenOrderBookWs,
+  type KrakenWebSocketMessage,
+} from './orderbook.js';
+export { fetchTransactions } from './transactions.js';
+export { getExplorerUrl } from './explorers.js';
 
 export interface FetchBalanceOptions {
   ethApiKey?: string;

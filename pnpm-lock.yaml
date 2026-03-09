@@ -86,6 +86,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@stackr/charts':
+        specifier: workspace:*
+        version: link:../../packages/charts
       '@stackr/models':
         specifier: workspace:*
         version: link:../../packages/models
@@ -159,6 +162,27 @@ importers:
       wrangler:
         specifier: ^3.99.0
         version: 3.114.17
+
+  packages/charts:
+    devDependencies:
+      '@stackr/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@stackr/tsconfig-config':
+        specifier: workspace:*
+        version: link:../tsconfig-config
+      '@types/react':
+        specifier: ^19.0.3
+        version: 19.2.14
+      eslint:
+        specifier: ^9.17.0
+        version: 9.39.3(jiti@2.6.1)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
 
   packages/eslint-config:
     dependencies:
