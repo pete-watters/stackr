@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0d0d0d"/>
+  <rect x="96" y="260" width="64" height="140" rx="8" fill="#627EEA"/>
+  <rect x="180" y="188" width="64" height="212" rx="8" fill="#F7931A"/>
+  <rect x="264" y="148" width="64" height="252" rx="8" fill="#5546FF"/>
+  <rect x="348" y="220" width="64" height="180" rx="8" fill="#9945FF"/>
+  <text x="256" y="116" text-anchor="middle" font-family="system-ui,sans-serif" font-size="52" font-weight="700" fill="white">STACKR</text>
+</svg>
