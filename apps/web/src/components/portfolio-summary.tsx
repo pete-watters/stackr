@@ -1,18 +1,21 @@
 'use client';
 
-import { formatUsd, formatChange } from '@stackr/services';
+import type { Currency } from '@stackr/models';
+import { formatFiat, formatChange } from '@stackr/services';
 import { Badge, Card, Skeleton } from '@stackr/ui';
 import { Sparkline } from '@stackr/charts/react';
 
 interface PortfolioSummaryProps {
-  totalUsd: number;
+  totalFiat: number;
+  currency: Currency;
   change24h?: number;
   sparklineData?: number[];
   isLoading: boolean;
 }
 
 export function PortfolioSummary({
-  totalUsd,
+  totalFiat,
+  currency,
   change24h,
   sparklineData,
   isLoading,
@@ -26,7 +29,7 @@ export function PortfolioSummary({
             <Skeleton width={180} height="2.5rem" />
           ) : (
             <div className="text-3xl font-mono font-bold text-foreground">
-              {formatUsd(totalUsd)}
+              {formatFiat(totalFiat, currency)}
             </div>
           )}
           {!isLoading && change24h !== undefined && (

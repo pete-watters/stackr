@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ChainSchema, chainMeta } from '@stackr/models';
 import type { Chain } from '@stackr/models';
 import { useBalance, usePrices, useTransactions } from '@stackr/queries';
-import { formatUsd } from '@stackr/services';
+import { formatFiat } from '@stackr/services';
 import {
   Button,
   Input,
@@ -43,6 +43,7 @@ export default function WalletDetailPage({
   const removeWallet = useWalletStore(s => s.removeWallet);
   const updateLabel = useWalletStore(s => s.updateLabel);
   const etherscanApiKey = useSettingsStore(s => s.etherscanApiKey);
+  const currency = useSettingsStore(s => s.currency);
   const {
     data: balance,
     isLoading,
@@ -50,9 +51,9 @@ export default function WalletDetailPage({
   } = useBalance(chain, address, {
     ethApiKey: etherscanApiKey || undefined,
   });
-  const { data: prices } = usePrices([chain]);
+  const { data: prices } = usePrices([chain], currency);
   const price = prices?.[0];
-  const usdValue = balance && price ? parseFloat(balance.balance) * price.usdPrice : undefined;
+  const fiatValue = balance && price ? parseFloat(balance.balance) * price.fiatPrice : undefined;
   const { data: transactions, isLoading: txLoading } = useTransactions(chain, address);
 
   const [editLabel, setEditLabel] = useState('');
@@ -139,8 +140,10 @@ export default function WalletDetailPage({
               <div className="text-2xl font-mono font-bold">
                 {balance.balance} {meta.symbol}
               </div>
-              {usdValue !== undefined && (
-                <div className="text-sm text-muted-foreground mt-1">{formatUsd(usdValue)}</div>
+              {fiatValue !== undefined && (
+                <div className="text-sm text-muted-foreground mt-1">
+                  {formatFiat(fiatValue, currency)}
+                </div>
               )}
             </>
           ) : null}

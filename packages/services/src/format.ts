@@ -1,10 +1,19 @@
-export function formatUsd(value: number): string {
-  return new Intl.NumberFormat('en-US', {
+import type { Currency } from '@stackr/models';
+import { currencyMeta } from '@stackr/models';
+
+export function formatFiat(value: number, currency: Currency = 'usd'): string {
+  const meta = currencyMeta[currency];
+  return new Intl.NumberFormat(meta.locale, {
     style: 'currency',
-    currency: 'USD',
+    currency: currency.toUpperCase(),
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
+}
+
+/** @deprecated Use formatFiat(value, 'usd') instead */
+export function formatUsd(value: number): string {
+  return formatFiat(value, 'usd');
 }
 
 export function formatCrypto(value: number | string, decimals: number = 6): string {
