@@ -11,3 +11,11 @@ export {
 } from './price.js';
 export { OrderSchema, OrderBookSchema, type Order, type OrderBook } from './orderbook.js';
 export { TransactionSchema, type Transaction } from './transaction.js';
+export {
+  CashHoldingSchema,
+  StockHoldingSchema,
+  HoldingSchema,
+  type CashHolding,
+  type StockHolding,
+  type Holding,
+} from './holding.js';

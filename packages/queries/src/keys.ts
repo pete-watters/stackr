@@ -9,4 +9,6 @@ export const queryKeys = {
     [...queryKeys.prices(), currency, ...chains] as const,
   priceHistory: (chain: Chain, days: number, currency: Currency = 'usd') =>
     [...queryKeys.all, 'price-history', chain, days, currency] as const,
+  stockSearch: (query: string) => [...queryKeys.all, 'stock-search', query] as const,
+  stockQuotes: (symbols: string[]) => [...queryKeys.all, 'stock-quotes', ...symbols] as const,
 };
