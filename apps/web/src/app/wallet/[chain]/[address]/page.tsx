@@ -10,6 +10,7 @@ import { formatUsd } from '@stackr/services';
 import {
   Button,
   Input,
+  Card,
   Dialog,
   DialogTrigger,
   DialogContent,
@@ -24,7 +25,6 @@ import { useWalletStore } from '@/lib/wallet-store';
 import { useSettingsStore } from '@/lib/settings-store';
 import { Header } from '@/components/header';
 import { TransactionList } from '@/components/transaction-list';
-import { css } from 'styled-system/css';
 
 export default function WalletDetailPage({
   params,
@@ -62,16 +62,8 @@ export default function WalletDetailPage({
     return (
       <>
         <Header />
-        <main
-          className={css({
-            maxW: '48rem',
-            mx: 'auto',
-            p: 'space.05',
-            px: 'space.04',
-            textAlign: 'center',
-          })}
-        >
-          <p className={css({ color: 'error.text' })}>Invalid chain: {chainParam}</p>
+        <main className="mx-auto max-w-3xl px-4 py-6 text-center">
+          <p className="text-destructive">Invalid chain: {chainParam}</p>
         </main>
       </>
     );
@@ -80,89 +72,30 @@ export default function WalletDetailPage({
   return (
     <>
       <Header />
-      <main className={css({ maxW: '48rem', mx: 'auto', p: 'space.05', px: 'space.04' })}>
-        <Link href="/" className={css({ textStyle: 'label.01', color: 'accent.text' })}>
+      <main className="mx-auto max-w-3xl px-4 py-6">
+        <Link href="/" className="text-sm font-semibold text-primary">
           &larr; Back to Portfolio
         </Link>
 
-        <div
-          className={css({
-            mt: 'space.05',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'space.03',
-          })}
-        >
+        <div className="mt-6 flex items-center gap-3">
           <div>
-            <h1 className={css({ textStyle: 'heading.02' })}>{wallet?.label ?? 'Wallet'}</h1>
-            <div
-              className={css({
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'space.02',
-                mt: 'space.01',
-              })}
-            >
-              <span className={css({ textStyle: 'body.02', color: 'ink.text-secondary' })}>
-                {meta.name}
-              </span>
-              <AddressDisplayer
-                address={address}
-                className={css({ textStyle: 'mono.03', color: 'ink.text-secondary' })}
-              />
-              <CopyButton
-                text={address}
-                className={css({
-                  textStyle: 'caption.01',
-                  color: 'accent.text',
-                  bg: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                })}
-              />
+            <h1 className="text-2xl font-bold">{wallet?.label ?? 'Wallet'}</h1>
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">{meta.name}</span>
+              <AddressDisplayer address={address} className="text-xs text-muted-foreground" />
+              <CopyButton text={address} />
             </div>
           </div>
           {wallet && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="button button--ghost button--sm"
-                  onClick={() => setEditLabel(wallet.label)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => setEditLabel(wallet.label)}>
                   Edit
                 </Button>
               </DialogTrigger>
-              <DialogContent
-                className={
-                  css({
-                    position: 'fixed',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    bg: 'ink.bg-secondary',
-                    borderRadius: 'lg',
-                    border: '1px solid',
-                    borderColor: 'ink.border-subtle',
-                    p: 'space.05',
-                    w: '90vw',
-                    maxW: '24rem',
-                    zIndex: 'modal',
-                  }) + ' dialog-content'
-                }
-              >
-                <DialogTitle
-                  className={css({ textStyle: 'heading.03', mb: 'space.03' }) + ' dialog-title'}
-                >
-                  Edit Wallet Label
-                </DialogTitle>
-                <DialogDescription
-                  className={
-                    css({ textStyle: 'body.02', color: 'ink.text-secondary', mb: 'space.04' }) +
-                    ' dialog-description'
-                  }
-                >
+              <DialogContent>
+                <DialogTitle>Edit Wallet Label</DialogTitle>
+                <DialogDescription className="mt-2">
                   Change the display name for this wallet.
                 </DialogDescription>
                 <form
@@ -173,34 +106,21 @@ export default function WalletDetailPage({
                       setDialogOpen(false);
                     }
                   }}
-                  className={css({ display: 'flex', flexDirection: 'column', gap: 'space.03' })}
+                  className="mt-4 flex flex-col gap-3"
                 >
                   <Input
                     label="Label"
                     value={editLabel}
                     onChange={e => setEditLabel(e.target.value)}
                     required
-                    className="input"
                   />
-                  <div
-                    className={css({
-                      display: 'flex',
-                      gap: 'space.02',
-                      justifyContent: 'flex-end',
-                    })}
-                  >
+                  <div className="flex justify-end gap-2">
                     <DialogClose asChild>
-                      <Button
-                        variant="ghost"
-                        type="button"
-                        className="button button--ghost button--md"
-                      >
+                      <Button variant="ghost" type="button">
                         Cancel
                       </Button>
                     </DialogClose>
-                    <Button type="submit" className="button button--primary button--md">
-                      Save
-                    </Button>
+                    <Button type="submit">Save</Button>
                   </div>
                 </form>
               </DialogContent>
@@ -208,86 +128,43 @@ export default function WalletDetailPage({
           )}
         </div>
 
-        <div
-          className={css({
-            mt: 'space.05',
-            p: 'space.05',
-            bg: 'ink.component-bg-default',
-            borderRadius: 'lg',
-            border: '1px solid',
-            borderColor: 'ink.border-subtle',
-          })}
-        >
-          <div
-            className={css({ textStyle: 'label.02', color: 'ink.text-secondary', mb: 'space.02' })}
-          >
-            Balance
-          </div>
+        <Card className="mt-6 p-6">
+          <div className="text-sm text-muted-foreground mb-2">Balance</div>
           {isLoading ? (
-            <Skeleton width={160} height="2rem" className="skeleton" />
+            <Skeleton width={160} height="2rem" />
           ) : error ? (
-            <div className={css({ textStyle: 'body.01', color: 'error.text' })}>
-              Failed to load balance
-            </div>
+            <div className="text-base text-destructive">Failed to load balance</div>
           ) : balance ? (
             <>
-              <div className={css({ textStyle: 'mono.01' })}>
+              <div className="text-2xl font-mono font-bold">
                 {balance.balance} {meta.symbol}
               </div>
               {usdValue !== undefined && (
-                <div
-                  className={css({
-                    textStyle: 'body.02',
-                    color: 'ink.text-secondary',
-                    mt: 'space.01',
-                  })}
-                >
-                  {formatUsd(usdValue)}
-                </div>
+                <div className="text-sm text-muted-foreground mt-1">{formatUsd(usdValue)}</div>
               )}
             </>
           ) : null}
-        </div>
+        </Card>
 
-        <div
-          className={css({
-            mt: 'space.05',
-            bg: 'ink.component-bg-default',
-            borderRadius: 'lg',
-            border: '1px solid',
-            borderColor: 'ink.border-subtle',
-            overflow: 'hidden',
-          })}
-        >
-          <div
-            className={css({
-              textStyle: 'label.02',
-              color: 'ink.text-secondary',
-              p: 'space.03',
-              borderBottom: '1px solid',
-              borderColor: 'ink.border-subtle',
-            })}
-          >
-            Recent Transactions
-          </div>
-          <div className={css({ p: 'space.02' })}>
+        <Card className="mt-6 overflow-hidden">
+          <div className="text-sm text-muted-foreground p-4 border-b">Recent Transactions</div>
+          <div className="p-2">
             <TransactionList
               transactions={transactions ?? []}
               chain={chain}
               isLoading={txLoading}
             />
           </div>
-        </div>
+        </Card>
 
         {wallet && (
           <Button
             variant="danger"
-            className="button button--danger button--md"
             onClick={() => {
               removeWallet(wallet.id);
               router.push('/');
             }}
-            style={{ marginTop: '32px' }}
+            className="mt-8"
           >
             Remove Wallet
           </Button>

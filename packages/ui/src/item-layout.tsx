@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 import { forwardRef } from 'react';
+import { cn } from './lib/utils.js';
 
 export interface ItemLayoutProps extends HTMLAttributes<HTMLDivElement> {
   titleLeft: ReactNode;
@@ -9,35 +10,16 @@ export interface ItemLayoutProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const ItemLayout = forwardRef<HTMLDivElement, ItemLayoutProps>(
-  ({ titleLeft, titleRight, captionLeft, captionRight, className, style, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={`item-layout ${className ?? ''}`.trim()}
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        width: '100%',
-        ...style,
-      }}
-      {...props}
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
-        <div style={{ fontWeight: 500 }}>{titleLeft}</div>
-        {captionLeft && <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{captionLeft}</div>}
+  ({ titleLeft, titleRight, captionLeft, captionRight, className, ...props }, ref) => (
+    <div ref={ref} className={cn('flex w-full items-start justify-between', className)} {...props}>
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <div className="font-medium">{titleLeft}</div>
+        {captionLeft && <div className="text-xs text-muted-foreground">{captionLeft}</div>}
       </div>
       {(titleRight || captionRight) && (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-end',
-            gap: '2px',
-            flexShrink: 0,
-          }}
-        >
-          {titleRight && <div style={{ fontWeight: 500 }}>{titleRight}</div>}
-          {captionRight && <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{captionRight}</div>}
+        <div className="flex shrink-0 flex-col items-end gap-0.5">
+          {titleRight && <div className="font-medium">{titleRight}</div>}
+          {captionRight && <div className="text-xs text-muted-foreground">{captionRight}</div>}
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import type { HTMLAttributes } from 'react';
 import { forwardRef } from 'react';
+import { cn } from './lib/utils.js';
 
 export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   width?: string | number;
@@ -8,10 +9,10 @@ export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
-  ({ width, height = '1em', borderRadius = 4, className, style, ...props }, ref) => (
+  ({ width, height = '1em', borderRadius, className, style, ...props }, ref) => (
     <div
       ref={ref}
-      className={`skeleton ${className ?? ''}`.trim()}
+      className={cn('animate-pulse rounded-md bg-muted', className)}
       style={{
         width,
         height,

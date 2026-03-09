@@ -1,6 +1,7 @@
 'use client';
 
 import { type ButtonHTMLAttributes, forwardRef, useState, useCallback } from 'react';
+import { cn } from './lib/utils.js';
 
 export interface CopyButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
   text: string;
@@ -27,7 +28,10 @@ export const CopyButton = forwardRef<HTMLButtonElement, CopyButtonProps>(
         ref={ref}
         type="button"
         onClick={handleCopy}
-        className={`copy-button ${className ?? ''}`.trim()}
+        className={cn(
+          'text-xs text-primary hover:text-primary/80 bg-transparent border-none cursor-pointer transition-colors',
+          className,
+        )}
         aria-label={copied ? copiedLabel : label}
         {...props}
       >

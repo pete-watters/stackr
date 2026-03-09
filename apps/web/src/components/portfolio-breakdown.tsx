@@ -2,7 +2,7 @@
 
 import { chainMeta } from '@stackr/models';
 import type { Chain } from '@stackr/models';
-import { css } from 'styled-system/css';
+import { Card } from '@stackr/ui';
 
 interface Allocation {
   chain: Chain;
@@ -27,36 +27,11 @@ export function PortfolioBreakdown({ allocations }: PortfolioBreakdownProps) {
   const sorted = [...allocations].sort((a, b) => b.percentage - a.percentage);
 
   return (
-    <div
-      className={css({
-        p: 'space.04',
-        bg: 'ink.component-bg-default',
-        borderRadius: 'lg',
-        border: '1px solid',
-        borderColor: 'ink.border-subtle',
-        mb: 'space.05',
-      })}
-    >
-      <div
-        className={css({
-          textStyle: 'label.02',
-          color: 'ink.text-secondary',
-          mb: 'space.03',
-        })}
-      >
-        Allocation
-      </div>
+    <Card className="p-4 mb-6">
+      <div className="text-sm text-muted-foreground mb-3">Allocation</div>
 
       {/* Stacked bar */}
-      <div
-        className={css({
-          display: 'flex',
-          height: '8px',
-          borderRadius: 'round',
-          overflow: 'hidden',
-          mb: 'space.03',
-        })}
-      >
+      <div className="flex h-2 rounded-full overflow-hidden mb-3">
         {sorted.map(a => (
           <div
             key={a.chain}
@@ -69,26 +44,19 @@ export function PortfolioBreakdown({ allocations }: PortfolioBreakdownProps) {
       </div>
 
       {/* Legend */}
-      <div className={css({ display: 'flex', flexWrap: 'wrap', gap: 'space.03' })}>
+      <div className="flex flex-wrap gap-3">
         {sorted.map(a => (
-          <div
-            key={a.chain}
-            className={css({ display: 'flex', alignItems: 'center', gap: 'space.01' })}
-          >
+          <div key={a.chain} className="flex items-center gap-1">
             <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                backgroundColor: chainBarColors[a.chain],
-              }}
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: chainBarColors[a.chain] }}
             />
-            <span className={css({ textStyle: 'caption.01', color: 'ink.text-secondary' })}>
+            <span className="text-xs text-muted-foreground">
               {chainMeta[a.chain].symbol} {a.percentage.toFixed(1)}%
             </span>
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

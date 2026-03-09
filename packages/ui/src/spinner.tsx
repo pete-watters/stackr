@@ -1,5 +1,6 @@
 import type { HTMLAttributes } from 'react';
 import { forwardRef } from 'react';
+import { cn } from './lib/utils.js';
 
 type SpinnerSize = 'sm' | 'md' | 'lg';
 
@@ -21,10 +22,14 @@ export const Spinner = forwardRef<HTMLDivElement, SpinnerProps>(
         ref={ref}
         role="status"
         aria-label="Loading"
-        className={`spinner spinner--${size} ${className ?? ''}`.trim()}
+        className={cn(
+          'rounded-full border-2 border-muted border-t-primary animate-spin',
+          className,
+        )}
         style={{
           width: px,
           height: px,
+          animationDuration: '0.6s',
           ...style,
         }}
         {...props}
