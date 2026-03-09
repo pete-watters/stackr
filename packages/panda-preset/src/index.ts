@@ -14,6 +14,17 @@ export const stackrPreset = definePreset({
       textStyles,
       breakpoints,
       recipes,
+      keyframes: {
+        shimmer: {
+          '0%': { opacity: '0.5' },
+          '50%': { opacity: '1' },
+          '100%': { opacity: '0.5' },
+        },
+        spin: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+      },
     },
   },
 });

@@ -19,6 +19,7 @@
     "@stackr/panda-preset": "workspace:*",
     "@stackr/queries": "workspace:*",
     "@stackr/services": "workspace:*",
+    "@stackr/charts": "workspace:*",
     "@stackr/ui": "workspace:*",
     "@tanstack/react-query": "^5.62.8",
     "next": "^15.1.3",

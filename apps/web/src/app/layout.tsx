@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: 'Stackr — Multi-Chain Portfolio Tracker',
   description: 'Track your BTC, STX, ETH, and SOL wallet balances in one place.',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export const viewport: Viewport = {

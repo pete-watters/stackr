@@ -92,8 +92,80 @@ export const inputRecipe = defineRecipe({
   },
 });
 
+export const badgeRecipe = defineRecipe({
+  className: 'badge',
+  base: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    px: 'space.02',
+    py: 'space.01',
+    borderRadius: 'round',
+    textStyle: 'caption.01',
+    fontWeight: 'medium',
+  },
+  variants: {
+    variant: {
+      default: {
+        bg: 'ink.component-bg-default',
+        color: 'ink.text-secondary',
+      },
+      success: {
+        bg: 'success.bg-subtle',
+        color: 'success.text',
+      },
+      warning: {
+        bg: 'warning.bg-subtle',
+        color: 'warning.text',
+      },
+      error: {
+        bg: 'error.bg-subtle',
+        color: 'error.text',
+      },
+      info: {
+        bg: 'accent.bg-subtle',
+        color: 'accent.text',
+      },
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+});
+
+export const skeletonRecipe = defineRecipe({
+  className: 'skeleton',
+  base: {
+    bg: 'ink.component-bg-default',
+    animation: 'shimmer 1.5s ease-in-out infinite',
+  },
+});
+
+export const spinnerRecipe = defineRecipe({
+  className: 'spinner',
+  base: {
+    borderRadius: 'round',
+    border: '2px solid',
+    borderColor: 'ink.border-subtle',
+    borderTopColor: 'accent.solid-default',
+    animation: 'spin 0.6s linear infinite',
+  },
+  variants: {
+    size: {
+      sm: { width: '16px', height: '16px' },
+      md: { width: '24px', height: '24px' },
+      lg: { width: '32px', height: '32px' },
+    },
+  },
+  defaultVariants: {
+    size: 'md',
+  },
+});
+
 export const recipes = {
   button: buttonRecipe,
   card: cardRecipe,
   input: inputRecipe,
+  badge: badgeRecipe,
+  skeleton: skeletonRecipe,
+  spinner: spinnerRecipe,
 };
