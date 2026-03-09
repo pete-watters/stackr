@@ -10,7 +10,6 @@ import { Header } from '@/components/header';
 import { WalletCard } from '@/components/wallet-card';
 import { PortfolioSummary } from '@/components/portfolio-summary';
 import { PortfolioBreakdown } from '@/components/portfolio-breakdown';
-import { css } from 'styled-system/css';
 
 export default function DashboardPage() {
   const wallets = useWalletStore(s => s.wallets);
@@ -22,7 +21,6 @@ export default function DashboardPage() {
   const uniqueChains = [...new Set(wallets.map(w => w.chain))] as Chain[];
   const { data: prices } = usePrices(uniqueChains);
 
-  // Get 7d price history for the first chain (for portfolio sparkline)
   const primaryChain = uniqueChains[0];
   const { data: priceHistory } = usePriceHistory(primaryChain ?? 'btc', 7);
 
@@ -39,7 +37,6 @@ export default function DashboardPage() {
 
   const allLoaded = balanceQueries.every(q => !q.isLoading);
 
-  // Compute weighted average 24h change
   const weightedChange =
     totalUsd > 0
       ? wallets.reduce((acc, wallet, i) => {
@@ -53,7 +50,6 @@ export default function DashboardPage() {
         }, 0)
       : undefined;
 
-  // Compute allocations for breakdown
   const allocations = uniqueChains
     .map(chain => {
       const chainWallets = wallets.map((w, i) => ({ w, i })).filter(({ w }) => w.chain === chain);
@@ -76,37 +72,18 @@ export default function DashboardPage() {
   return (
     <>
       <Header />
-      <main className={css({ maxW: '48rem', mx: 'auto', p: 'space.05', px: 'space.04' })}>
-        <div
-          className={css({
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 'space.05',
-          })}
-        >
-          <h1 className={css({ textStyle: 'heading.02' })}>Portfolio</h1>
-          <Button asChild className="button button--primary button--md">
+      <main className="mx-auto max-w-3xl px-4 py-6">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Portfolio</h1>
+          <Button asChild>
             <Link href="/wallet/add">+ Add Wallet</Link>
           </Button>
         </div>
 
         {wallets.length === 0 ? (
-          <div
-            className={css({
-              textAlign: 'center',
-              py: 'space.09',
-              px: 'space.05',
-              border: '1px dashed',
-              borderColor: 'ink.border-subtle',
-              borderRadius: 'lg',
-              color: 'ink.text-muted',
-            })}
-          >
-            <p className={css({ textStyle: 'body.01', mb: 'space.02' })}>No wallets yet</p>
-            <p className={css({ textStyle: 'body.02' })}>
-              Add your first wallet to start tracking your portfolio.
-            </p>
+          <div className="rounded-lg border border-dashed py-12 px-6 text-center text-muted-foreground">
+            <p className="text-base mb-2">No wallets yet</p>
+            <p className="text-sm">Add your first wallet to start tracking your portfolio.</p>
           </div>
         ) : (
           <>
@@ -121,7 +98,7 @@ export default function DashboardPage() {
               <PortfolioBreakdown allocations={allocations} />
             )}
 
-            <div className={css({ display: 'flex', flexDirection: 'column', gap: 'space.03' })}>
+            <div className="flex flex-col gap-3">
               {wallets.map((wallet, i) => (
                 <WalletCard
                   key={wallet.id}

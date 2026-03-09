@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { OrderBook } from '@stackr/models';
 import { formatUsd } from '@stackr/services';
-import { css } from 'styled-system/css';
+import { Card } from '@stackr/ui';
 
 interface OrderbookProps {
   orderbook: OrderBook;
@@ -18,58 +18,19 @@ export function Orderbook({ orderbook }: OrderbookProps) {
     orderbook.asks[orderbook.asks.length - 1]?.cumulativeAmount ?? 0,
   );
 
-  const headerStyle = css({
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr 1fr',
-    px: 'space.03',
-    py: 'space.01',
-    textStyle: 'caption.01',
-    color: 'ink.text-muted',
-    borderBottom: '1px solid',
-    borderColor: 'ink.border-subtle',
-  });
-
-  const rowStyle = css({
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr 1fr',
-    px: 'space.03',
-    py: '2px',
-    position: 'relative',
-    cursor: 'pointer',
-    textStyle: 'mono.03',
-    transition: 'background 0.1s ease',
-  });
-
   const displayBids = orderbook.bids.slice(0, 15);
   const displayAsks = orderbook.asks.slice(0, 15);
 
   return (
-    <div
-      className={css({
-        bg: 'ink.component-bg-default',
-        borderRadius: 'lg',
-        border: '1px solid',
-        borderColor: 'ink.border-subtle',
-        overflow: 'hidden',
-      })}
-    >
-      <div
-        className={css({
-          p: 'space.03',
-          textStyle: 'label.01',
-          borderBottom: '1px solid',
-          borderColor: 'ink.border-subtle',
-        })}
-      >
-        Order Book — {orderbook.pair}
-      </div>
+    <Card className="overflow-hidden">
+      <div className="p-3 text-sm font-semibold border-b">Order Book — {orderbook.pair}</div>
 
       {/* Asks (reversed so lowest ask is at bottom) */}
       <div>
-        <div className={headerStyle}>
+        <div className="grid grid-cols-3 px-3 py-1 text-xs text-muted-foreground border-b">
           <span>Price</span>
-          <span style={{ textAlign: 'right' }}>Amount</span>
-          <span style={{ textAlign: 'right' }}>Total</span>
+          <span className="text-right">Amount</span>
+          <span className="text-right">Total</span>
         </div>
         {[...displayAsks].reverse().map((order, i) => {
           const fillPct = (order.cumulativeAmount / maxCumulative) * 100;
@@ -77,7 +38,7 @@ export function Orderbook({ orderbook }: OrderbookProps) {
           return (
             <div
               key={`ask-${i}`}
-              className={rowStyle}
+              className="grid grid-cols-3 px-3 py-0.5 relative cursor-pointer font-mono text-xs transition-colors"
               onMouseEnter={() => {
                 setHoveredIndex(i);
                 setHoveredSide('ask');
@@ -89,19 +50,15 @@ export function Orderbook({ orderbook }: OrderbookProps) {
               style={{ background: isHovered ? 'rgba(229, 57, 53, 0.08)' : undefined }}
             >
               <div
+                className="absolute right-0 top-0 bottom-0 pointer-events-none"
                 style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
                   width: `${fillPct}%`,
                   background: 'rgba(229, 57, 53, 0.06)',
-                  pointerEvents: 'none',
                 }}
               />
-              <span className={css({ color: 'error.text' })}>{formatUsd(order.price)}</span>
-              <span style={{ textAlign: 'right' }}>{order.amount.toFixed(4)}</span>
-              <span style={{ textAlign: 'right' }}>{order.cumulativeAmount.toFixed(4)}</span>
+              <span className="text-destructive">{formatUsd(order.price)}</span>
+              <span className="text-right">{order.amount.toFixed(4)}</span>
+              <span className="text-right">{order.cumulativeAmount.toFixed(4)}</span>
             </div>
           );
         })}
@@ -109,18 +66,7 @@ export function Orderbook({ orderbook }: OrderbookProps) {
 
       {/* Spread indicator */}
       {orderbook.bids.length > 0 && orderbook.asks.length > 0 && (
-        <div
-          className={css({
-            textAlign: 'center',
-            py: 'space.01',
-            textStyle: 'caption.01',
-            color: 'ink.text-muted',
-            borderTop: '1px solid',
-            borderBottom: '1px solid',
-            borderColor: 'ink.border-subtle',
-            bg: 'ink.bg-secondary',
-          })}
-        >
+        <div className="text-center py-1 text-xs text-muted-foreground border-y bg-muted/30">
           Spread: {formatUsd(orderbook.asks[0].price - orderbook.bids[0].price)} (
           {(
             ((orderbook.asks[0].price - orderbook.bids[0].price) / orderbook.asks[0].price) *
@@ -138,7 +84,7 @@ export function Orderbook({ orderbook }: OrderbookProps) {
           return (
             <div
               key={`bid-${i}`}
-              className={rowStyle}
+              className="grid grid-cols-3 px-3 py-0.5 relative cursor-pointer font-mono text-xs transition-colors"
               onMouseEnter={() => {
                 setHoveredIndex(i);
                 setHoveredSide('bid');
@@ -150,23 +96,19 @@ export function Orderbook({ orderbook }: OrderbookProps) {
               style={{ background: isHovered ? 'rgba(0, 178, 117, 0.08)' : undefined }}
             >
               <div
+                className="absolute right-0 top-0 bottom-0 pointer-events-none"
                 style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
                   width: `${fillPct}%`,
                   background: 'rgba(0, 178, 117, 0.06)',
-                  pointerEvents: 'none',
                 }}
               />
-              <span className={css({ color: 'success.text' })}>{formatUsd(order.price)}</span>
-              <span style={{ textAlign: 'right' }}>{order.amount.toFixed(4)}</span>
-              <span style={{ textAlign: 'right' }}>{order.cumulativeAmount.toFixed(4)}</span>
+              <span className="text-success">{formatUsd(order.price)}</span>
+              <span className="text-right">{order.amount.toFixed(4)}</span>
+              <span className="text-right">{order.cumulativeAmount.toFixed(4)}</span>
             </div>
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 }

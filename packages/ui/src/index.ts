@@ -1,5 +1,14 @@
-export { Button, type ButtonProps } from './button.js';
-export { Card, type CardProps } from './card.js';
+export { cn } from './lib/utils.js';
+export { Button, buttonVariants, type ButtonProps } from './button.js';
+export {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+  type CardProps,
+} from './card.js';
 export { Input, type InputProps } from './input.js';
 export {
   Dialog,
@@ -27,8 +36,20 @@ export { VisuallyHidden } from './visually-hidden.js';
 export { AddressDisplayer, type AddressDisplayerProps } from './address-displayer.js';
 export { ChainAvatar, type ChainAvatarProps } from './chain-avatar.js';
 export { ItemLayout, type ItemLayoutProps } from './item-layout.js';
-export { Badge, type BadgeProps, type BadgeVariant } from './badge.js';
+export { Badge, badgeVariants, type BadgeProps, type BadgeVariant } from './badge.js';
 export { Callout, type CalloutProps, type CalloutVariant } from './callout.js';
 export { Skeleton, type SkeletonProps } from './skeleton.js';
 export { Spinner, type SpinnerProps } from './spinner.js';
 export { CopyButton, type CopyButtonProps } from './copy-button.js';
+export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs.js';
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+  DropdownMenuSub,
+  DropdownMenuRadioGroup,
+} from './dropdown-menu.js';

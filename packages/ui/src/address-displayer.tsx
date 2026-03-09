@@ -1,5 +1,6 @@
 import type { HTMLAttributes } from 'react';
 import { forwardRef } from 'react';
+import { cn } from './lib/utils.js';
 
 export interface AddressDisplayerProps extends HTMLAttributes<HTMLDivElement> {
   address: string;
@@ -16,12 +17,11 @@ export const AddressDisplayer = forwardRef<HTMLDivElement, AddressDisplayerProps
     return (
       <div
         ref={ref}
-        className={`address-displayer ${className ?? ''}`.trim()}
-        style={{ fontFamily: 'monospace', display: 'inline-flex', flexWrap: 'wrap', gap: '0.25em' }}
+        className={cn('inline-flex flex-wrap gap-1 font-mono text-sm', className)}
         {...props}
       >
         {chunks.map((chunk, i) => (
-          <span key={i} style={{ opacity: i % 2 === 0 ? 1 : 0.5 }}>
+          <span key={i} className={i % 2 === 0 ? 'opacity-100' : 'opacity-50'}>
             {chunk}
           </span>
         ))}

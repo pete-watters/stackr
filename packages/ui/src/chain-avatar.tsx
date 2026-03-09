@@ -1,5 +1,6 @@
 import type { SVGAttributes } from 'react';
 import { forwardRef } from 'react';
+import { cn } from './lib/utils.js';
 
 type ChainType = 'btc' | 'stx' | 'eth' | 'sol';
 type AvatarSize = 'sm' | 'md' | 'lg';
@@ -41,7 +42,7 @@ export const ChainAvatar = forwardRef<SVGSVGElement, ChainAvatarProps>(
         width={px}
         height={px}
         viewBox="0 0 40 40"
-        className={`chain-avatar ${className ?? ''}`.trim()}
+        className={cn('shrink-0', className)}
         aria-label={`${chain.toUpperCase()} icon`}
         {...props}
       >
