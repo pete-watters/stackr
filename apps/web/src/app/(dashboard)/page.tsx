@@ -7,7 +7,7 @@ import { useSettingsStore } from '@/lib/settings-store';
 import { useHoldingsStore } from '@/lib/holdings-store';
 import { useBalances, usePrices, usePriceHistory, useStockQuotes } from '@stackr/queries';
 import { formatFiat } from '@stackr/services';
-import type { Chain } from '@stackr/models';
+import type { Chain, Wallet } from '@stackr/models';
 import { Header } from '@/components/header';
 import { WalletCard } from '@/components/wallet-card';
 import { PortfolioSummary } from '@/components/portfolio-summary';
@@ -15,16 +15,34 @@ import { PortfolioBreakdown } from '@/components/portfolio-breakdown';
 
 export default function DashboardPage() {
   const wallets = useWalletStore(s => s.wallets);
+  const connectedAddresses = useWalletStore(s => s.connectedAddresses);
   const etherscanApiKey = useSettingsStore(s => s.etherscanApiKey);
   const currency = useSettingsStore(s => s.currency);
   const alphaVantageApiKey = useSettingsStore(s => s.alphaVantageApiKey);
   const holdings = useHoldingsStore(s => s.holdings);
 
-  const balanceQueries = useBalances(wallets, {
+  // Build virtual wallet objects for connected ETH addresses not already watch-listed
+  const watchedEthAddresses = new Set(
+    wallets.filter(w => w.chain === 'eth').map(w => w.address.toLowerCase()),
+  );
+  const connectedWallets: Wallet[] = (connectedAddresses.eth ?? [])
+    .filter(addr => !watchedEthAddresses.has(addr.toLowerCase()))
+    .map(addr => ({
+      id: `connected:${addr}`,
+      label: `${addr.slice(0, 6)}…${addr.slice(-4)}`,
+      chain: 'eth' as Chain,
+      address: addr,
+      createdAt: new Date().toISOString(),
+    }));
+
+  const allWallets = [...wallets, ...connectedWallets];
+  const connectedAddressSet = new Set((connectedAddresses.eth ?? []).map(a => a.toLowerCase()));
+
+  const balanceQueries = useBalances(allWallets, {
     ethApiKey: etherscanApiKey || undefined,
   });
 
-  const uniqueChains = [...new Set(wallets.map(w => w.chain))] as Chain[];
+  const uniqueChains = [...new Set(allWallets.map(w => w.chain))] as Chain[];
   const { data: prices } = usePrices(uniqueChains, currency);
 
   const primaryChain = uniqueChains[0];
@@ -33,7 +51,7 @@ export default function DashboardPage() {
   const priceMap = new Map(prices?.map(p => [p.chain, p]) ?? []);
 
   // Crypto total
-  const cryptoTotal = wallets.reduce((sum, wallet, i) => {
+  const cryptoTotal = allWallets.reduce((sum, wallet, i) => {
     const balance = balanceQueries[i]?.data;
     const price = priceMap.get(wallet.chain);
     if (balance && price) {
@@ -64,7 +82,7 @@ export default function DashboardPage() {
 
   const weightedChange =
     cryptoTotal > 0
-      ? wallets.reduce((acc, wallet, i) => {
+      ? allWallets.reduce((acc, wallet, i) => {
           const balance = balanceQueries[i]?.data;
           const price = priceMap.get(wallet.chain);
           if (balance && price) {
@@ -77,7 +95,9 @@ export default function DashboardPage() {
 
   const allocations = uniqueChains
     .map(chain => {
-      const chainWallets = wallets.map((w, i) => ({ w, i })).filter(({ w }) => w.chain === chain);
+      const chainWallets = allWallets
+        .map((w, i) => ({ w, i }))
+        .filter(({ w }) => w.chain === chain);
       const fiatValue = chainWallets.reduce((sum, { i }) => {
         const balance = balanceQueries[i]?.data;
         const price = priceMap.get(chain);
@@ -93,7 +113,7 @@ export default function DashboardPage() {
     .filter(a => a.fiatValue > 0);
 
   const sparklineValues = priceHistory?.map(p => p.price);
-  const hasAnything = wallets.length > 0 || holdings.length > 0;
+  const hasAnything = allWallets.length > 0 || holdings.length > 0;
 
   return (
     <>
@@ -159,7 +179,7 @@ export default function DashboardPage() {
             )}
 
             <div className="flex flex-col gap-3">
-              {wallets.map((wallet, i) => (
+              {allWallets.map((wallet, i) => (
                 <WalletCard
                   key={wallet.id}
                   wallet={wallet}
@@ -167,6 +187,7 @@ export default function DashboardPage() {
                   isLoading={balanceQueries[i]?.isLoading}
                   price={priceMap.get(wallet.chain)}
                   currency={currency}
+                  connected={connectedAddressSet.has(wallet.address.toLowerCase())}
                 />
               ))}
             </div>
