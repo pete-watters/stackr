@@ -4,8 +4,9 @@ import Link from 'next/link';
 import type { Wallet, Balance, Price, Currency } from '@stackr/models';
 import { chainMeta } from '@stackr/models';
 import { formatFiat, formatChange } from '@stackr/services';
-import { ChainAvatar, ItemLayout, Skeleton } from '@stackr/ui';
+import { ChainAvatar, ItemLayout, Skeleton, Badge } from '@stackr/ui';
 import { Sparkline } from '@stackr/charts/react';
+import { useEnsName } from '@/lib/ens-queries';
 
 interface WalletCardProps {
   wallet: Wallet;
@@ -14,6 +15,7 @@ interface WalletCardProps {
   price?: Price;
   sparklineData?: number[];
   currency?: Currency;
+  connected?: boolean;
 }
 
 export function WalletCard({
@@ -23,9 +25,14 @@ export function WalletCard({
   price,
   sparklineData,
   currency = 'usd',
+  connected = false,
 }: WalletCardProps) {
   const meta = chainMeta[wallet.chain];
-  const truncatedAddress = `${wallet.address.slice(0, 6)}\u2026${wallet.address.slice(-4)}`;
+  const truncatedAddress = `${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}`;
+
+  const { data: ensName } = useEnsName(
+    wallet.chain === 'eth' ? (wallet.address as `0x${string}`) : undefined,
+  );
 
   const fiatValue = balance && price ? parseFloat(balance.balance) * price.fiatPrice : undefined;
 
@@ -37,10 +44,19 @@ export function WalletCard({
       <div className="flex items-center gap-3">
         <ChainAvatar chain={wallet.chain} size="md" />
         <ItemLayout
-          titleLeft={<span className="text-sm font-semibold text-foreground">{wallet.label}</span>}
+          titleLeft={
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-semibold text-foreground">{wallet.label}</span>
+              {connected && (
+                <Badge variant="info" className="px-1.5 py-0 text-[10px]">
+                  Connected
+                </Badge>
+              )}
+            </div>
+          }
           captionLeft={
             <span className="text-xs text-muted-foreground">
-              {meta.name} &middot; <span className="font-mono">{truncatedAddress}</span>
+              {meta.name} &middot; <span className="font-mono">{ensName ?? truncatedAddress}</span>
             </span>
           }
           titleRight={
