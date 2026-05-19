@@ -8,8 +8,8 @@ Stackr is a multi-chain address watcher where users can add BTC/STX/ETH/SOL wall
 
 - **Monorepo**: pnpm workspaces + Turborepo
 - **Web**: Next.js (App Router) deployed to Cloudflare via @opennextjs/cloudflare
-- **Mobile**: Expo React Native (minimal scaffold)
-- **Styling**: Panda CSS with @stackr/panda-preset
+- **Mobile** (planned): Capacitor wrap of the web app, watch-only mode. Native RN scaffold removed.
+- **Styling**: Tailwind v4 + hand-rolled `@stackr/ui` (Radix headless primitives, styled by us)
 - **State**: TanStack React Query (server) + Zustand (client/persisted wallet list)
 - **Testing**: Vitest (unit) + Playwright (e2e)
 - **CI/CD**: GitHub Actions + release-please
@@ -23,9 +23,9 @@ Stackr is a multi-chain address watcher where users can add BTC/STX/ETH/SOL wall
 - `packages/models` — Zod schemas + types (Wallet, Balance, Chain)
 - `packages/services` — Multi-chain API clients (BTC, STX, ETH, SOL)
 - `packages/queries` — TanStack React Query hooks + query key factories
-- `packages/ui` — Shared React components
+- `packages/ui` — Shared React components (Radix-based, hand-styled)
+- `packages/charts` — Custom SVG charting library (Kraken-inspired, Fritsch-Carlson monotone interpolation)
 - `apps/web` — Next.js web app
-- `apps/mobile` — Expo mobile app
 
 ## Common Commands
 
