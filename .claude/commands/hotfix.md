@@ -1,10 +1,10 @@
 ---
-description: Hotfix workflow — branch off main, surgical fix, PR to main, assign Pete + status comment
+description: Hotfix workflow — branch off main, surgical fix, PR to main, cherry-pick into dev, assign Pete + status comment
 ---
 
-When the user invokes `/hotfix [optional short description]`, execute a hotfix on `main`.
+When the user invokes `/hotfix [optional short description]`, execute the GitFlow hotfix workflow.
 
-Stackr uses trunk-based development — `main` is the integration branch and there is no `dev`. Every PR (including hotfixes) targets `main`. A "hotfix" here means a small surgical fix that bypasses the usual feature-branch cadence because something is broken on the deployed site.
+Stackr uses GitFlow: `main` is the production branch, `dev` is the integration branch, and every feature PR targets `dev`. **Hotfix is the only workflow where a PR targets `main` directly** — it bypasses `dev` to land a surgical fix on production fast, then the same fix is cherry-picked back into `dev` so the branches stay aligned.
 
 ## Steps
 
@@ -24,7 +24,7 @@ Stackr uses trunk-based development — `main` is the integration branch and the
    - **Summary** — what changed and why (1-3 bullets)
    - **Trade-off** — what we lose temporarily, if anything
    - **Verification** — what CI will catch, manual smoke-test steps
-   - **Follow-up** — any longer-term work this defers
+   - **Follow-up** — note the cherry-pick to `dev` that needs to follow
    - Title + summary only. No "Generated with..." footer, no Test Plan section.
 
 8. **Assign Pete** so it lands on his dashboard: `gh pr edit <N> --add-assignee pete-watters`. GitHub rejects review requests on self-authored PRs, so assignee is the visibility signal.
@@ -34,10 +34,12 @@ Stackr uses trunk-based development — `main` is the integration branch and the
    - **Pending / decisions needed** — blockers, smoke-test asks
    - **Verification** — CI status, any manual steps Pete needs to take
 
-10. **After merge:** restore any stashed WIP on the original branch.
+10. **After merge: cherry-pick into dev.** Open a follow-up PR `chore/sync-<short-name>-into-dev` targeting `dev` that cherry-picks the hotfix commit. This keeps `dev` and `main` aligned. Restore any stashed WIP after.
 
 ## Notes
 
-- Branch protection is not enforced via GitHub (Free tier). Discipline replaces enforcement — never direct-push to `main`.
+- Every other PR (features, chores, docs) targets `dev`. Hotfixes are the only PRs that target `main`.
+- Releases happen by opening a PR `dev → main` with a tag at the merge commit (driven by release-please or manually).
+- Branch protection is not enforced via GitHub (Free tier). Discipline replaces enforcement — never direct-push to `main` or `dev`.
 - If `gh pr create` returns a URL, surface it prominently in the user-facing message so they can tap to merge.
-- Cloudflare Pages auto-deploys `main`.
+- Cloudflare deploys are triggered by pushes to `main` only.
