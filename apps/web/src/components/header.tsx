@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export function Header() {
@@ -31,6 +32,7 @@ export function Header() {
         >
           Settings
         </Link>
+        <ConnectButton />
         <ThemeToggle />
       </nav>
     </header>

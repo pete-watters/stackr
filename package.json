@@ -32,6 +32,11 @@
     "@stackr/prettier-config": "workspace:*",
     "@stackr/eslint-config": "workspace:*"
   },
+  "pnpm": {
+    "overrides": {
+      "@opennextjs/aws": "npm:@opennextjs/aws@3.5.3"
+    }
+  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
