@@ -1,4 +1,0 @@
-{
-  "extends": "@stackr/tsconfig-config/react-native.json",
-  "include": ["app/**/*.ts", "app/**/*.tsx", "*.ts"]
-}

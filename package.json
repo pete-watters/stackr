@@ -8,8 +8,8 @@
   },
   "scripts": {
     "build": "turbo run build",
+    "dev": "turbo run dev --filter=@stackr/web",
     "dev:web": "turbo run dev --filter=@stackr/web",
-    "dev:mobile": "turbo run dev --filter=@stackr/mobile",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
     "format": "prettier --write .",
