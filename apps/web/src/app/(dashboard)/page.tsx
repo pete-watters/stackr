@@ -1,0 +1,199 @@
+'use client';
+
+import Link from 'next/link';
+import { Button, Card } from '@stackr/ui';
+import { useWalletStore } from '@/lib/wallet-store';
+import { useSettingsStore } from '@/lib/settings-store';
+import { useHoldingsStore } from '@/lib/holdings-store';
+import { useBalances, usePrices, usePriceHistory, useStockQuotes } from '@stackr/queries';
+import { formatFiat } from '@stackr/services';
+import type { Chain, Wallet } from '@stackr/models';
+import { Header } from '@/components/header';
+import { WalletCard } from '@/components/wallet-card';
+import { PortfolioSummary } from '@/components/portfolio-summary';
+import { PortfolioBreakdown } from '@/components/portfolio-breakdown';
+
+export default function DashboardPage() {
+  const wallets = useWalletStore(s => s.wallets);
+  const connectedAddresses = useWalletStore(s => s.connectedAddresses);
+  const etherscanApiKey = useSettingsStore(s => s.etherscanApiKey);
+  const currency = useSettingsStore(s => s.currency);
+  const alphaVantageApiKey = useSettingsStore(s => s.alphaVantageApiKey);
+  const holdings = useHoldingsStore(s => s.holdings);
+
+  // Build virtual wallet objects for connected ETH addresses not already watch-listed
+  const watchedEthAddresses = new Set(
+    wallets.filter(w => w.chain === 'eth').map(w => w.address.toLowerCase()),
+  );
+  const connectedWallets: Wallet[] = (connectedAddresses.eth ?? [])
+    .filter(addr => !watchedEthAddresses.has(addr.toLowerCase()))
+    .map(addr => ({
+      id: `connected:${addr}`,
+      label: `${addr.slice(0, 6)}…${addr.slice(-4)}`,
+      chain: 'eth' as Chain,
+      address: addr,
+      createdAt: new Date().toISOString(),
+    }));
+
+  const allWallets = [...wallets, ...connectedWallets];
+  const connectedAddressSet = new Set((connectedAddresses.eth ?? []).map(a => a.toLowerCase()));
+
+  const balanceQueries = useBalances(allWallets, {
+    ethApiKey: etherscanApiKey || undefined,
+  });
+
+  const uniqueChains = [...new Set(allWallets.map(w => w.chain))] as Chain[];
+  const { data: prices } = usePrices(uniqueChains, currency);
+
+  const primaryChain = uniqueChains[0];
+  const { data: priceHistory } = usePriceHistory(primaryChain ?? 'btc', 7, currency);
+
+  const priceMap = new Map(prices?.map(p => [p.chain, p]) ?? []);
+
+  // Crypto total
+  const cryptoTotal = allWallets.reduce((sum, wallet, i) => {
+    const balance = balanceQueries[i]?.data;
+    const price = priceMap.get(wallet.chain);
+    if (balance && price) {
+      return sum + parseFloat(balance.balance) * price.fiatPrice;
+    }
+    return sum;
+  }, 0);
+
+  // Cash total
+  const cashHoldings = holdings.filter(h => h.type === 'cash');
+  const cashTotal = cashHoldings.reduce((sum, h) => (h.type === 'cash' ? sum + h.amount : sum), 0);
+
+  // Stock total
+  const stockHoldings = holdings.filter(
+    (h): h is Extract<typeof h, { type: 'stock' }> => h.type === 'stock',
+  );
+  const stockSymbols = stockHoldings.map(h => h.symbol);
+  const { data: stockQuotes } = useStockQuotes(stockSymbols, alphaVantageApiKey);
+  const quoteMap = new Map(stockQuotes?.map(q => [q.symbol, q]) ?? []);
+  const stockTotal = stockHoldings.reduce((sum, h) => {
+    const quote = quoteMap.get(h.symbol);
+    return sum + (quote ? quote.price * h.shares : 0);
+  }, 0);
+
+  const totalFiat = cryptoTotal + cashTotal + stockTotal;
+
+  const allLoaded = balanceQueries.every(q => !q.isLoading);
+
+  const weightedChange =
+    cryptoTotal > 0
+      ? allWallets.reduce((acc, wallet, i) => {
+          const balance = balanceQueries[i]?.data;
+          const price = priceMap.get(wallet.chain);
+          if (balance && price) {
+            const value = parseFloat(balance.balance) * price.fiatPrice;
+            return acc + (price.change24h * value) / cryptoTotal;
+          }
+          return acc;
+        }, 0)
+      : undefined;
+
+  const allocations = uniqueChains
+    .map(chain => {
+      const chainWallets = allWallets
+        .map((w, i) => ({ w, i }))
+        .filter(({ w }) => w.chain === chain);
+      const fiatValue = chainWallets.reduce((sum, { i }) => {
+        const balance = balanceQueries[i]?.data;
+        const price = priceMap.get(chain);
+        if (balance && price) return sum + parseFloat(balance.balance) * price.fiatPrice;
+        return sum;
+      }, 0);
+      return {
+        chain,
+        fiatValue,
+        percentage: totalFiat > 0 ? (fiatValue / totalFiat) * 100 : 0,
+      };
+    })
+    .filter(a => a.fiatValue > 0);
+
+  const sparklineValues = priceHistory?.map(p => p.price);
+  const hasAnything = allWallets.length > 0 || holdings.length > 0;
+
+  return (
+    <>
+      <Header />
+      <main className="mx-auto max-w-3xl px-4 py-6">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Portfolio</h1>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/holdings/add">+ Holding</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link href="/wallet/add">+ Wallet</Link>
+            </Button>
+          </div>
+        </div>
+
+        {!hasAnything ? (
+          <div className="rounded-lg border border-dashed py-12 px-6 text-center text-muted-foreground">
+            <p className="text-base mb-2">No assets yet</p>
+            <p className="text-sm">
+              Add wallets, cash savings, or stock positions to track your portfolio.
+            </p>
+          </div>
+        ) : (
+          <>
+            <PortfolioSummary
+              totalFiat={totalFiat}
+              currency={currency}
+              change24h={allLoaded ? weightedChange : undefined}
+              sparklineData={sparklineValues}
+              isLoading={!allLoaded}
+            />
+
+            {allLoaded && allocations.length > 0 && (
+              <PortfolioBreakdown allocations={allocations} currency={currency} />
+            )}
+
+            {/* Holdings summary cards */}
+            {(cashTotal > 0 || stockTotal > 0) && (
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {cashTotal > 0 && (
+                  <Link href="/holdings">
+                    <Card className="p-3 hover:border-ring transition-colors">
+                      <div className="text-xs text-muted-foreground">Cash</div>
+                      <div className="font-mono font-medium text-sm mt-1">
+                        {formatFiat(cashTotal, currency)}
+                      </div>
+                    </Card>
+                  </Link>
+                )}
+                {stockTotal > 0 && (
+                  <Link href="/holdings">
+                    <Card className="p-3 hover:border-ring transition-colors">
+                      <div className="text-xs text-muted-foreground">Stocks</div>
+                      <div className="font-mono font-medium text-sm mt-1">
+                        {formatFiat(stockTotal, currency)}
+                      </div>
+                    </Card>
+                  </Link>
+                )}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3">
+              {allWallets.map((wallet, i) => (
+                <WalletCard
+                  key={wallet.id}
+                  wallet={wallet}
+                  balance={balanceQueries[i]?.data}
+                  isLoading={balanceQueries[i]?.isLoading}
+                  price={priceMap.get(wallet.chain)}
+                  currency={currency}
+                  connected={connectedAddressSet.has(wallet.address.toLowerCase())}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </main>
+    </>
+  );
+}

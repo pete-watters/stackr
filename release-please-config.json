@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    "apps/web": {
+      "release-type": "node",
+      "component": "web",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/models": {
+      "release-type": "node",
+      "component": "models",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/services": {
+      "release-type": "node",
+      "component": "services",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/queries": {
+      "release-type": "node",
+      "component": "queries",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/ui": {
+      "release-type": "node",
+      "component": "ui",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/panda-preset": {
+      "release-type": "node",
+      "component": "panda-preset",
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}
