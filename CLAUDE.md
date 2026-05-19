@@ -44,3 +44,13 @@ pnpm test:e2e       # Run Playwright e2e tests
 - Commit messages follow Conventional Commits (enforced by commitlint)
 - ESLint flat config format
 - Node 22+, pnpm 9+
+
+## Branching (GitFlow)
+
+- **`main`** — production. Auto-deploys to Cloudflare on push. Never direct-push; lands only via merged PRs from `dev` (releases) or `hotfix/*` (urgent fixes).
+- **`dev`** — integration branch. Default branch on GitHub. Every feature/chore/docs PR targets `dev`.
+- **`feat/...`, `fix/...`, `chore/...`, `docs/...`** — short-lived branches off `dev`. Merge back into `dev` via PR.
+- **`hotfix/...`** — branches off `main` for urgent production fixes. PR to `main`, then cherry-pick into `dev` (see `.claude/commands/hotfix.md`).
+- **Releases:** PR `dev → main` with a merge commit + tag.
+- No `Co-Authored-By` trailers, no AI / "Generated with..." footers in commits, PR bodies, ADRs, or anywhere public.
+- See `.github/pull_request_template.md` for PR body shape (`Closes #N` or `Type:` tag).
