@@ -31,3 +31,19 @@ export async function fetchStxBalance(address: string): Promise<Balance> {
     updatedAt: new Date().toISOString(),
   };
 }
+
+interface HiroBnsNamesResponse {
+  names: string[];
+}
+
+/**
+ * Reverse-resolve a Stacks address to its primary BNS name (e.g. `pete.btc`).
+ * Returns the first name owned by the address, or null if the address holds
+ * no BNS names or the Hiro endpoint errors out.
+ */
+export async function lookupStacksBnsName(address: string): Promise<string | null> {
+  const res = await fetch(`${HIRO_API}/v1/addresses/stacks/${address}`);
+  if (!res.ok) return null;
+  const data = (await res.json()) as HiroBnsNamesResponse;
+  return data.names?.[0] ?? null;
+}

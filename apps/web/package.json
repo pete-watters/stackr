@@ -15,12 +15,13 @@
     "clean": "rm -rf .next .turbo"
   },
   "dependencies": {
+    "@rainbow-me/rainbowkit": "^2.2.4",
+    "@stackr/charts": "workspace:*",
     "@stackr/models": "workspace:*",
     "@stackr/queries": "workspace:*",
     "@stackr/services": "workspace:*",
-    "@stackr/charts": "workspace:*",
     "@stackr/ui": "workspace:*",
-    "@rainbow-me/rainbowkit": "^2.2.4",
+    "@stacks/connect": "^8.2.6",
     "@tanstack/react-query": "^5.62.8",
     "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",
