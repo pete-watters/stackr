@@ -56,11 +56,7 @@ export function useWalletConnections(): WalletConnection[] {
   const wantPhantomRef = useRef(false);
   const { select, connect: solConnect, wallet: solWallet, connected: solConnected } = solana;
   useEffect(() => {
-    if (
-      wantPhantomRef.current &&
-      solWallet?.adapter.name === PhantomWalletName &&
-      !solConnected
-    ) {
+    if (wantPhantomRef.current && solWallet?.adapter.name === PhantomWalletName && !solConnected) {
       wantPhantomRef.current = false;
       void solConnect().catch(() => undefined);
     }

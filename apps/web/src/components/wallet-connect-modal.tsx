@@ -40,16 +40,13 @@ export function WalletConnectModal() {
       <DialogContent className="max-w-sm">
         <DialogTitle>Connect a wallet</DialogTitle>
         <DialogDescription>
-          Read-only. Stackr never asks to sign or move funds — wallets are used
-          only to read your addresses.
+          Read-only. Stackr never asks to sign or move funds — wallets are used only to read your
+          addresses.
         </DialogDescription>
 
         <ul className="mt-4 flex flex-col gap-2">
           {wallets.map(wallet => (
-            <li
-              key={wallet.id}
-              className="flex items-center justify-between rounded-lg border p-3"
-            >
+            <li key={wallet.id} className="flex items-center justify-between rounded-lg border p-3">
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2">
                   {wallet.chains.map(chain => (
