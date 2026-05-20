@@ -1,100 +1,116 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe as feature, it as scenario, expect, beforeEach } from 'vitest';
+import { bdd } from './bdd';
+const { given, when, then, and } = bdd;
 import { useWalletStore } from './wallet-store';
 
-describe('wallet store', () => {
-  beforeEach(() => {
-    useWalletStore.setState({ wallets: [], connectedAddresses: {} });
+const VITALIK = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+const ALICE = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+const BOB = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
+
+beforeEach(() => {
+  useWalletStore.setState({ wallets: [], connectedAddresses: {} });
+});
+
+feature('watch-only wallets', () => {
+  scenario('a watch address is added to the portfolio', () => {
+    when('a Bitcoin wallet is added', () =>
+      useWalletStore.getState().addWallet({
+        label: 'Cold storage',
+        chain: 'btc',
+        address: 'bc1qtest123',
+      }),
+    );
+    then('it appears in the wallet list with an id and timestamp', () => {
+      const [wallet, ...rest] = useWalletStore.getState().wallets;
+      expect(rest).toHaveLength(0);
+      expect(wallet.label).toBe('Cold storage');
+      expect(wallet.chain).toBe('btc');
+      expect(wallet.address).toBe('bc1qtest123');
+      expect(wallet.id).toBeDefined();
+      expect(wallet.createdAt).toBeDefined();
+    });
   });
 
-  it('adds a wallet', () => {
-    useWalletStore.getState().addWallet({
-      label: 'Test Wallet',
-      chain: 'btc',
-      address: 'bc1qtest123',
+  scenario('a watch address can be removed', () => {
+    given('a tracked Ethereum wallet', () =>
+      useWalletStore.getState().addWallet({ label: 'Hot', chain: 'eth', address: ALICE }),
+    );
+    when('it is removed by id', () => {
+      const { id } = useWalletStore.getState().wallets[0];
+      useWalletStore.getState().removeWallet(id);
     });
-
-    const wallets = useWalletStore.getState().wallets;
-    expect(wallets).toHaveLength(1);
-    expect(wallets[0].label).toBe('Test Wallet');
-    expect(wallets[0].chain).toBe('btc');
-    expect(wallets[0].address).toBe('bc1qtest123');
-    expect(wallets[0].id).toBeDefined();
-    expect(wallets[0].createdAt).toBeDefined();
+    then('no wallets remain', () => {
+      expect(useWalletStore.getState().wallets).toHaveLength(0);
+    });
   });
 
-  it('removes a wallet', () => {
-    useWalletStore.getState().addWallet({
-      label: 'Test',
-      chain: 'eth',
-      address: '0xtest',
+  scenario('a wallet label can be edited', () => {
+    given('a wallet with an initial label', () =>
+      useWalletStore.getState().addWallet({ label: 'Old Label', chain: 'sol', address: 'SolTest' }),
+    );
+    when('the label is updated', () => {
+      const { id } = useWalletStore.getState().wallets[0];
+      useWalletStore.getState().updateLabel(id, 'New Label');
     });
-
-    const id = useWalletStore.getState().wallets[0].id;
-    useWalletStore.getState().removeWallet(id);
-    expect(useWalletStore.getState().wallets).toHaveLength(0);
-  });
-
-  it('updates a wallet label', () => {
-    useWalletStore.getState().addWallet({
-      label: 'Old Label',
-      chain: 'sol',
-      address: 'SolTest123',
+    then('the new label is stored', () => {
+      expect(useWalletStore.getState().wallets[0].label).toBe('New Label');
     });
-
-    const id = useWalletStore.getState().wallets[0].id;
-    useWalletStore.getState().updateLabel(id, 'New Label');
-    expect(useWalletStore.getState().wallets[0].label).toBe('New Label');
   });
 });
 
-describe('connectedAddresses slice', () => {
-  beforeEach(() => {
-    useWalletStore.setState({ wallets: [], connectedAddresses: {} });
+feature('connected wallet addresses', () => {
+  scenario('the store starts with no connected addresses', () => {
+    then('connectedAddresses is empty', () => {
+      expect(useWalletStore.getState().connectedAddresses).toEqual({});
+    });
   });
 
-  it('initialises with empty connectedAddresses', () => {
-    expect(useWalletStore.getState().connectedAddresses).toEqual({});
+  scenario('a connected address is recorded per chain', () => {
+    when('an Ethereum address connects', () =>
+      useWalletStore.getState().setConnectedAddresses('eth', [VITALIK]),
+    );
+    then('it is stored under the eth key', () => {
+      expect(useWalletStore.getState().connectedAddresses.eth).toEqual([VITALIK]);
+    });
   });
 
-  it('sets connected addresses for a chain', () => {
-    const addr = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
-    useWalletStore.getState().setConnectedAddresses('eth', [addr]);
-
-    expect(useWalletStore.getState().connectedAddresses.eth).toEqual([addr]);
+  scenario('reconnecting replaces the previous address for that chain', () => {
+    given('a connected Ethereum address', () =>
+      useWalletStore.getState().setConnectedAddresses('eth', [ALICE]),
+    );
+    when('a different address connects on the same chain', () =>
+      useWalletStore.getState().setConnectedAddresses('eth', [BOB]),
+    );
+    then('only the latest address remains', () => {
+      expect(useWalletStore.getState().connectedAddresses.eth).toEqual([BOB]);
+    });
   });
 
-  it('replaces connected addresses when called again', () => {
-    const addr1 = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
-    const addr2 = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
-    useWalletStore.getState().setConnectedAddresses('eth', [addr1]);
-    useWalletStore.getState().setConnectedAddresses('eth', [addr2]);
-
-    expect(useWalletStore.getState().connectedAddresses.eth).toEqual([addr2]);
+  scenario('disconnecting one chain leaves the others intact', () => {
+    given('connected Ethereum and Solana addresses', () => {
+      useWalletStore.getState().setConnectedAddresses('eth', [ALICE]);
+      useWalletStore.getState().setConnectedAddresses('sol', ['SolAddr1']);
+    });
+    when('Ethereum is disconnected', () =>
+      useWalletStore.getState().clearConnectedAddresses('eth'),
+    );
+    then('the Ethereum entry is gone', () => {
+      expect(useWalletStore.getState().connectedAddresses.eth).toBeUndefined();
+    });
+    and('the Solana entry survives', () => {
+      expect(useWalletStore.getState().connectedAddresses.sol).toEqual(['SolAddr1']);
+    });
   });
 
-  it('clears connected addresses for a chain', () => {
-    const addr = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
-    useWalletStore.getState().setConnectedAddresses('eth', [addr]);
-    useWalletStore.getState().clearConnectedAddresses('eth');
-
-    expect(useWalletStore.getState().connectedAddresses.eth).toBeUndefined();
-  });
-
-  it('does not affect other chains when clearing', () => {
-    useWalletStore.getState().setConnectedAddresses('eth', ['0xabc']);
-    useWalletStore.getState().setConnectedAddresses('sol', ['SolAddr1']);
-    useWalletStore.getState().clearConnectedAddresses('eth');
-
-    expect(useWalletStore.getState().connectedAddresses.eth).toBeUndefined();
-    expect(useWalletStore.getState().connectedAddresses.sol).toEqual(['SolAddr1']);
-  });
-
-  it('supports multiple chains independently', () => {
-    useWalletStore.getState().setConnectedAddresses('eth', ['0xeth']);
-    useWalletStore.getState().setConnectedAddresses('sol', ['SolAddr']);
-
-    const { connectedAddresses } = useWalletStore.getState();
-    expect(connectedAddresses.eth).toEqual(['0xeth']);
-    expect(connectedAddresses.sol).toEqual(['SolAddr']);
+  scenario('Leather contributes both a Stacks and a Bitcoin address', () => {
+    when('a Leather wallet connects', () => {
+      useWalletStore.getState().setConnectedAddresses('stx', ['SP123']);
+      useWalletStore.getState().setConnectedAddresses('btc', ['bc1qleather']);
+    });
+    then('both chains are populated independently', () => {
+      const { connectedAddresses } = useWalletStore.getState();
+      expect(connectedAddresses.stx).toEqual(['SP123']);
+      expect(connectedAddresses.btc).toEqual(['bc1qleather']);
+    });
   });
 });
