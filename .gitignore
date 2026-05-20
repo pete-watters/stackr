@@ -38,3 +38,6 @@ pnpm-debug.log*
 # Local working notes (plans, scratch, anything not for the public repo)
 .private/
 coverage/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
