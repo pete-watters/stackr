@@ -4,6 +4,7 @@ import type { Currency } from '@stackr/models';
 import { formatFiat, formatChange } from '@stackr/services';
 import { Badge, Card, Skeleton } from '@stackr/ui';
 import { Sparkline } from '@stackr/charts/react';
+import { maskFiat } from '@/lib/mask-fiat';
 
 interface PortfolioSummaryProps {
   totalFiat: number;
@@ -11,6 +12,7 @@ interface PortfolioSummaryProps {
   change24h?: number;
   sparklineData?: number[];
   isLoading: boolean;
+  hideBalance?: boolean;
 }
 
 export function PortfolioSummary({
@@ -19,6 +21,7 @@ export function PortfolioSummary({
   change24h,
   sparklineData,
   isLoading,
+  hideBalance = false,
 }: PortfolioSummaryProps) {
   return (
     <Card className="p-6 mb-6">
@@ -29,7 +32,7 @@ export function PortfolioSummary({
             <Skeleton width={180} height="2.5rem" />
           ) : (
             <div className="text-3xl font-mono font-bold text-foreground">
-              {formatFiat(totalFiat, currency)}
+              {maskFiat(formatFiat(totalFiat, currency), hideBalance)}
             </div>
           )}
           {!isLoading && change24h !== undefined && (

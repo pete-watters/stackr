@@ -7,6 +7,7 @@ import { formatFiat, formatChange } from '@stackr/services';
 import { ChainAvatar, ItemLayout, Skeleton, Badge } from '@stackr/ui';
 import { Sparkline } from '@stackr/charts/react';
 import { useEnsName } from '@/lib/ens-queries';
+import { maskFiat } from '@/lib/mask-fiat';
 
 interface WalletCardProps {
   wallet: Wallet;
@@ -16,6 +17,7 @@ interface WalletCardProps {
   sparklineData?: number[];
   currency?: Currency;
   connected?: boolean;
+  hideBalance?: boolean;
 }
 
 export function WalletCard({
@@ -26,6 +28,7 @@ export function WalletCard({
   sparklineData,
   currency = 'usd',
   connected = false,
+  hideBalance = false,
 }: WalletCardProps) {
   const meta = chainMeta[wallet.chain];
   const truncatedAddress = `${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}`;
@@ -80,7 +83,7 @@ export function WalletCard({
               <Skeleton width={60} height="0.875em" />
             ) : fiatValue !== undefined ? (
               <span className="text-xs text-muted-foreground">
-                {formatFiat(fiatValue, currency)}
+                {maskFiat(formatFiat(fiatValue, currency), hideBalance)}
                 {price && (
                   <span
                     className={`ml-1 ${price.change24h >= 0 ? 'text-success' : 'text-destructive'}`}
