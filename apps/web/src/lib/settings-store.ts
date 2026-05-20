@@ -9,6 +9,8 @@ interface SettingsState {
   setCurrency: (currency: Currency) => void;
   alphaVantageApiKey: string;
   setAlphaVantageApiKey: (key: string) => void;
+  hideBalance: boolean;
+  toggleHideBalance: () => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -20,7 +22,16 @@ export const useSettingsStore = create<SettingsState>()(
       setCurrency: currency => set({ currency }),
       alphaVantageApiKey: '',
       setAlphaVantageApiKey: key => set({ alphaVantageApiKey: key }),
+      hideBalance: false,
+      toggleHideBalance: () => set(s => ({ hideBalance: !s.hideBalance })),
     }),
-    { name: 'stackr-settings' },
+    {
+      name: 'stackr-settings',
+      partialize: state => ({
+        etherscanApiKey: state.etherscanApiKey,
+        currency: state.currency,
+        alphaVantageApiKey: state.alphaVantageApiKey,
+      }),
+    },
   ),
 );
