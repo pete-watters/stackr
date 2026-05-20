@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { PhantomConnectButton } from '@/components/phantom-connect-button';
-import { LeatherConnectButton } from '@/components/leather-connect-button';
+import { ChainStatusIndicators } from '@/components/chain-status-indicators';
+import { WalletConnectModal } from '@/components/wallet-connect-modal';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export function Header() {
@@ -34,9 +33,8 @@ export function Header() {
         >
           Settings
         </Link>
-        <ConnectButton />
-        <PhantomConnectButton />
-        <LeatherConnectButton />
+        <ChainStatusIndicators />
+        <WalletConnectModal />
         <ThemeToggle />
       </nav>
     </header>
