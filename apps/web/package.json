@@ -45,6 +45,8 @@
     "@stackr/eslint-config": "workspace:*",
     "@stackr/tsconfig-config": "workspace:*",
     "@tailwindcss/postcss": "^4.0.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.1.0",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.3",
     "@types/react-dom": "^19.0.3",
