@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { PhantomConnectButton } from '@/components/phantom-connect-button';
 import { LeatherConnectButton } from '@/components/leather-connect-button';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -34,6 +35,7 @@ export function Header() {
           Settings
         </Link>
         <ConnectButton />
+        <PhantomConnectButton />
         <LeatherConnectButton />
         <ThemeToggle />
       </nav>
