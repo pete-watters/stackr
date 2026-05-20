@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { Currency } from '@stackr/models';
 import { currencyMeta } from '@stackr/models';
 import { formatFiat, formatChange } from '@stackr/services';
+import { maskFiat } from '@/lib/mask-fiat';
 import { useStockQuotes } from '@stackr/queries';
 import { Button, Card, Badge } from '@stackr/ui';
 import { useHoldingsStore } from '@/lib/holdings-store';
@@ -15,6 +16,7 @@ export default function HoldingsPage() {
   const removeHolding = useHoldingsStore(s => s.removeHolding);
   const currency = useSettingsStore(s => s.currency);
   const alphaVantageApiKey = useSettingsStore(s => s.alphaVantageApiKey);
+  const hideBalance = useSettingsStore(s => s.hideBalance);
 
   const stockSymbols = holdings
     .filter((h): h is Extract<typeof h, { type: 'stock' }> => h.type === 'stock')
@@ -60,7 +62,9 @@ export default function HoldingsPage() {
             <div className="grid grid-cols-2 gap-4 mb-6">
               <Card className="p-4">
                 <div className="text-sm text-muted-foreground mb-1">Cash</div>
-                <div className="text-xl font-mono font-bold">{formatFiat(totalCash, currency)}</div>
+                <div className="text-xl font-mono font-bold">
+                  {maskFiat(formatFiat(totalCash, currency), hideBalance)}
+                </div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {cashHoldings.length} account{cashHoldings.length !== 1 ? 's' : ''}
                 </div>
@@ -68,7 +72,7 @@ export default function HoldingsPage() {
               <Card className="p-4">
                 <div className="text-sm text-muted-foreground mb-1">Stocks</div>
                 <div className="text-xl font-mono font-bold">
-                  {formatFiat(totalStocks, currency)}
+                  {maskFiat(formatFiat(totalStocks, currency), hideBalance)}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {stockHoldings.length} position{stockHoldings.length !== 1 ? 's' : ''}
@@ -94,7 +98,7 @@ export default function HoldingsPage() {
                         <div className="flex items-center gap-3">
                           <div className="text-right">
                             <div className="font-mono font-medium">
-                              {formatFiat(h.amount, h.currency)}
+                              {maskFiat(formatFiat(h.amount, h.currency), hideBalance)}
                             </div>
                           </div>
                           <button
@@ -137,7 +141,7 @@ export default function HoldingsPage() {
                             <div className="text-xs text-muted-foreground mt-0.5">
                               {h.shares} shares
                               {h.avgCostBasis !== undefined &&
-                                ` \u00B7 Avg cost: ${formatFiat(h.avgCostBasis, currency)}`}
+                                ` \u00B7 Avg cost: ${maskFiat(formatFiat(h.avgCostBasis, currency), hideBalance)}`}
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -145,7 +149,7 @@ export default function HoldingsPage() {
                               {value !== undefined ? (
                                 <>
                                   <div className="font-mono font-medium">
-                                    {formatFiat(value, currency)}
+                                    {maskFiat(formatFiat(value, currency), hideBalance)}
                                   </div>
                                   {quote && (
                                     <Badge

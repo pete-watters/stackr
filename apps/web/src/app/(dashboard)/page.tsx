@@ -7,6 +7,7 @@ import { useSettingsStore } from '@/lib/settings-store';
 import { useHoldingsStore } from '@/lib/holdings-store';
 import { useBalances, usePrices, usePriceHistory, useStockQuotes } from '@stackr/queries';
 import { formatFiat } from '@stackr/services';
+import { maskFiat } from '@/lib/mask-fiat';
 import type { Chain, Wallet } from '@stackr/models';
 import { Header } from '@/components/header';
 import { WalletCard } from '@/components/wallet-card';
@@ -19,6 +20,7 @@ export default function DashboardPage() {
   const etherscanApiKey = useSettingsStore(s => s.etherscanApiKey);
   const currency = useSettingsStore(s => s.currency);
   const alphaVantageApiKey = useSettingsStore(s => s.alphaVantageApiKey);
+  const hideBalance = useSettingsStore(s => s.hideBalance);
   const holdings = useHoldingsStore(s => s.holdings);
 
   // Build virtual wallet objects for connected ETH addresses not already watch-listed
@@ -146,6 +148,7 @@ export default function DashboardPage() {
               change24h={allLoaded ? weightedChange : undefined}
               sparklineData={sparklineValues}
               isLoading={!allLoaded}
+              hideBalance={hideBalance}
             />
 
             {allLoaded && allocations.length > 0 && (
@@ -160,7 +163,7 @@ export default function DashboardPage() {
                     <Card className="p-3 hover:border-ring transition-colors">
                       <div className="text-xs text-muted-foreground">Cash</div>
                       <div className="font-mono font-medium text-sm mt-1">
-                        {formatFiat(cashTotal, currency)}
+                        {maskFiat(formatFiat(cashTotal, currency), hideBalance)}
                       </div>
                     </Card>
                   </Link>
@@ -170,7 +173,7 @@ export default function DashboardPage() {
                     <Card className="p-3 hover:border-ring transition-colors">
                       <div className="text-xs text-muted-foreground">Stocks</div>
                       <div className="font-mono font-medium text-sm mt-1">
-                        {formatFiat(stockTotal, currency)}
+                        {maskFiat(formatFiat(stockTotal, currency), hideBalance)}
                       </div>
                     </Card>
                   </Link>
@@ -188,6 +191,7 @@ export default function DashboardPage() {
                   price={priceMap.get(wallet.chain)}
                   currency={currency}
                   connected={connectedAddressSet.has(wallet.address.toLowerCase())}
+                  hideBalance={hideBalance}
                 />
               ))}
             </div>
