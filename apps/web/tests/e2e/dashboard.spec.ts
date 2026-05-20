@@ -2,16 +2,17 @@ import { test, expect } from '@playwright/test';
 
 test('dashboard page loads', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText('Portfolio')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Portfolio' })).toBeVisible();
 });
 
-test('shows empty state when no wallets', async ({ page }) => {
+test('shows empty state when nothing is tracked', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText('No wallets yet')).toBeVisible();
+  await expect(page.getByText('No assets yet')).toBeVisible();
 });
 
 test('navigates to add wallet page', async ({ page }) => {
   await page.goto('/');
-  await page.getByText('Add Wallet').first().click();
-  await expect(page.getByText('Add Wallet')).toBeVisible();
+  await page.getByRole('link', { name: '+ Wallet' }).click();
+  await expect(page).toHaveURL(/\/wallet\/add/);
+  await expect(page.getByRole('heading', { name: 'Add Wallet' })).toBeVisible();
 });
