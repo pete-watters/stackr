@@ -1,0 +1,88 @@
+'use client';
+
+import { useState } from 'react';
+import {
+  Button,
+  ChainAvatar,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@stackr/ui';
+import { chainMeta } from '@stackr/models';
+import { useWalletConnections, type WalletId } from '@/lib/use-wallet-connections';
+
+export function WalletConnectModal() {
+  const wallets = useWalletConnections();
+  const [pending, setPending] = useState<WalletId | null>(null);
+  const anyConnected = wallets.some(w => w.connected);
+
+  async function run(id: WalletId, action: () => void | Promise<void>) {
+    setPending(id);
+    try {
+      await action();
+    } catch {
+      // User rejected or the wallet errored; surface nothing — the row stays
+      // in its previous state and the user can retry.
+    } finally {
+      setPending(null);
+    }
+  }
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button size="sm" variant={anyConnected ? 'outline' : 'primary'}>
+          {anyConnected ? 'Wallets' : 'Connect'}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogTitle>Connect a wallet</DialogTitle>
+        <DialogDescription>
+          Read-only. Stackr never asks to sign or move funds — wallets are used only to read your
+          addresses.
+        </DialogDescription>
+
+        <ul className="mt-4 flex flex-col gap-2">
+          {wallets.map(wallet => (
+            <li key={wallet.id} className="flex items-center justify-between rounded-lg border p-3">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {wallet.chains.map(chain => (
+                    <ChainAvatar key={chain} chain={chain} size="sm" />
+                  ))}
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-foreground">{wallet.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {wallet.chains.map(c => chainMeta[c].symbol).join(' · ')}
+                  </div>
+                </div>
+              </div>
+
+              {wallet.connected ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => run(wallet.id, wallet.disconnect)}
+                  disabled={pending === wallet.id}
+                >
+                  Disconnect
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={() => run(wallet.id, wallet.connect)}
+                  disabled={pending !== null}
+                >
+                  {pending === wallet.id ? 'Connecting…' : 'Connect'}
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </DialogContent>
+    </Dialog>
+  );
+}
