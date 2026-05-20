@@ -3,11 +3,23 @@ import { Providers } from '@/lib/providers';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://stackr.ie'),
   title: 'Stackr — Multi-Chain Portfolio Tracker',
-  description: 'Track your BTC, STX, ETH, and SOL wallet balances in one place.',
+  description:
+    'Cross-chain Web3 portfolio for self-custody. Track BTC, ETH, STX, and SOL wallet balances in one place.',
   manifest: '/manifest.json',
-  icons: {
-    icon: '/favicon.svg',
+  openGraph: {
+    type: 'website',
+    url: 'https://stackr.ie',
+    siteName: 'Stackr',
+    title: 'Stackr — Multi-Chain Portfolio Tracker',
+    description: 'Cross-chain Web3 portfolio for self-custody.',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Stackr — Multi-Chain Portfolio Tracker',
+    description: 'Cross-chain Web3 portfolio for self-custody.',
   },
 };
 
