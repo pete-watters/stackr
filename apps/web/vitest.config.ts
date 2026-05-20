@@ -2,6 +2,9 @@ import { defineConfig } from 'vitest/config';
 import path from 'node:path';
 
 export default defineConfig({
+  // Use the React 17+ automatic JSX runtime so component tests don't need a
+  // `React` import in scope (matches Next.js's transform).
+  esbuild: { jsx: 'automatic' },
   test: {
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
