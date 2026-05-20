@@ -5,7 +5,7 @@ import { fetchEthBalance } from './eth.js';
 import { fetchSolBalance } from './sol.js';
 
 export { fetchBtcBalance } from './btc.js';
-export { fetchStxBalance } from './stx.js';
+export { fetchStxBalance, lookupStacksBnsName } from './stx.js';
 export { fetchEthBalance } from './eth.js';
 export { fetchSolBalance } from './sol.js';
 export { fetchPrices, fetchPriceHistory } from './prices.js';
