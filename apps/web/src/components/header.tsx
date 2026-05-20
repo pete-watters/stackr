@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { PhantomConnectButton } from '@/components/phantom-connect-button';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export function Header() {
@@ -33,6 +34,7 @@ export function Header() {
           Settings
         </Link>
         <ConnectButton />
+        <PhantomConnectButton />
         <ThemeToggle />
       </nav>
     </header>
