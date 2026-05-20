@@ -2,11 +2,10 @@
 
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { PhantomConnectButton } from '@/components/phantom-connect-button';
-import { LeatherConnectButton } from '@/components/leather-connect-button';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@stackr/ui';
+import { ChainStatusIndicators } from '@/components/chain-status-indicators';
+import { WalletConnectModal } from '@/components/wallet-connect-modal';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { useSettingsStore } from '@/lib/settings-store';
 
 export function Header() {
@@ -40,9 +39,8 @@ export function Header() {
         >
           Settings
         </Link>
-        <ConnectButton />
-        <PhantomConnectButton />
-        <LeatherConnectButton />
+        <ChainStatusIndicators />
+        <WalletConnectModal />
         <Button
           variant="ghost"
           size="icon"
