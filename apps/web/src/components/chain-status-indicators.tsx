@@ -3,6 +3,7 @@
 import { ChainAvatar, Tooltip, TooltipTrigger, TooltipContent } from '@stackr/ui';
 import { chainMeta, type Chain } from '@stackr/models';
 import { useWalletStore } from '@/lib/wallet-store';
+import { useIsNativePlatform } from '@/lib/use-is-native-platform';
 
 const CHAINS: Chain[] = ['eth', 'sol', 'stx', 'btc'];
 
@@ -13,6 +14,10 @@ const CHAINS: Chain[] = ['eth', 'sol', 'stx', 'btc'];
  */
 export function ChainStatusIndicators() {
   const connectedAddresses = useWalletStore(s => s.connectedAddresses);
+  const isNative = useIsNativePlatform();
+
+  // Connection status is meaningless on the watch-only mobile build.
+  if (isNative) return null;
 
   return (
     <div className="flex items-center gap-1" aria-label="Connected chains">

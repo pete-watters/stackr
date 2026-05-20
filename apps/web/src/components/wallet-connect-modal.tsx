@@ -12,11 +12,19 @@ import {
 } from '@stackr/ui';
 import { chainMeta } from '@stackr/models';
 import { useWalletConnections, type WalletId } from '@/lib/use-wallet-connections';
+import { useIsNativePlatform } from '@/lib/use-is-native-platform';
 
 export function WalletConnectModal() {
   const wallets = useWalletConnections();
+  const isNative = useIsNativePlatform();
   const [pending, setPending] = useState<WalletId | null>(null);
   const anyConnected = wallets.some(w => w.connected);
+
+  // Browser-extension wallets don't exist inside the native WebView, so the
+  // mobile app is watch-only — surface a hint instead of a connect button.
+  if (isNative) {
+    return <span className="text-xs text-muted-foreground">Watch-only on mobile</span>;
+  }
 
   async function run(id: WalletId, action: () => void | Promise<void>) {
     setPending(id);

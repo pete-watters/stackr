@@ -1,6 +1,7 @@
-import { describe as feature, it as scenario, expect, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { describe as feature, it as scenario, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import { TooltipProvider } from '@stackr/ui';
+import { Capacitor } from '@capacitor/core';
 import type { ReactNode } from 'react';
 import { bdd } from '../lib/bdd';
 import { useWalletStore } from '../lib/wallet-store';
@@ -15,7 +16,10 @@ function renderWithProviders(ui: ReactNode) {
 beforeEach(() => {
   useWalletStore.setState({ wallets: [], connectedAddresses: {} });
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 feature('chain status indicators', () => {
   scenario('renders a dot for every supported chain', () => {
@@ -41,5 +45,15 @@ feature('chain status indicators', () => {
       const solDot = screen.getByLabelText('SOL icon').parentElement;
       expect(solDot?.className).toContain('opacity-30');
     });
+  });
+
+  scenario('renders nothing on the native (mobile) build', async () => {
+    given('the app is running inside the Capacitor native shell', () =>
+      vi.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(true),
+    );
+    when('the status row renders', () => renderWithProviders(<ChainStatusIndicators />));
+    await then('no chain dots are shown (status is web-only)', () =>
+      waitFor(() => expect(screen.queryByLabelText('ETH icon')).toBeNull()),
+    );
   });
 });
