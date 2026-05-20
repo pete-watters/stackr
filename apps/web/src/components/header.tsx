@@ -34,6 +34,12 @@ export function Header() {
           Market
         </Link>
         <Link
+          href="/defi"
+          className="text-sm font-semibold text-muted-foreground hover:text-foreground"
+        >
+          DeFi
+        </Link>
+        <Link
           href="/settings"
           className="text-sm font-semibold text-muted-foreground hover:text-foreground"
         >
