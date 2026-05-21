@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useConnect, useDisconnect } from 'wagmi';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PhantomWalletName } from '@solana/wallet-adapter-phantom';
@@ -13,7 +13,9 @@ import {
   readStacksAddresses,
 } from '@/lib/stacks-connect';
 
-export type WalletId = 'metamask' | 'phantom' | 'leather';
+import { detectInstalledWallets, INSTALL_URLS, type WalletId } from './wallet-detect';
+
+export type { WalletId } from './wallet-detect';
 
 export interface WalletConnection {
   id: WalletId;
@@ -21,6 +23,10 @@ export interface WalletConnection {
   /** Chains this wallet contributes to the portfolio. */
   chains: Chain[];
   connected: boolean;
+  /** Whether the wallet's browser extension has injected a provider. */
+  installed: boolean;
+  /** Where to install the extension when it is missing. */
+  installUrl: string;
   connect: () => void | Promise<void>;
   disconnect: () => void | Promise<void>;
 }
@@ -42,6 +48,16 @@ export function useWalletConnections(): WalletConnection[] {
   const setConnectedAddresses = useWalletStore(s => s.setConnectedAddresses);
   const clearConnectedAddresses = useWalletStore(s => s.clearConnectedAddresses);
   const connectedAddresses = useWalletStore(s => s.connectedAddresses);
+
+  // --- Detect installed extensions (client-only) ---
+  const [installed, setInstalled] = useState<Record<WalletId, boolean>>({
+    metamask: false,
+    phantom: false,
+    leather: false,
+  });
+  useEffect(() => {
+    setInstalled(detectInstalledWallets(window));
+  }, []);
 
   // --- Leather: restore a persisted session on mount ---
   useEffect(() => {
@@ -98,6 +114,8 @@ export function useWalletConnections(): WalletConnection[] {
       name: 'MetaMask',
       chains: ['eth'],
       connected: has('eth'),
+      installed: installed.metamask,
+      installUrl: INSTALL_URLS.metamask,
       connect: connectMetaMask,
       disconnect: () => disconnectEvm(),
     },
@@ -106,6 +124,8 @@ export function useWalletConnections(): WalletConnection[] {
       name: 'Phantom',
       chains: ['sol'],
       connected: has('sol'),
+      installed: installed.phantom,
+      installUrl: INSTALL_URLS.phantom,
       connect: connectPhantom,
       disconnect: () => solana.disconnect(),
     },
@@ -114,6 +134,8 @@ export function useWalletConnections(): WalletConnection[] {
       name: 'Leather',
       chains: ['stx', 'btc'],
       connected: has('stx'),
+      installed: installed.leather,
+      installUrl: INSTALL_URLS.leather,
       connect: connectLeather,
       disconnect: disconnectLeather,
     },

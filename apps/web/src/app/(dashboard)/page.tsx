@@ -13,6 +13,7 @@ import { Header } from '@/components/header';
 import { WalletCard } from '@/components/wallet-card';
 import { PortfolioSummary } from '@/components/portfolio-summary';
 import { PortfolioBreakdown } from '@/components/portfolio-breakdown';
+import { RecentActivity } from '@/components/recent-activity';
 
 export default function DashboardPage() {
   const wallets = useWalletStore(s => s.wallets);
@@ -120,7 +121,7 @@ export default function DashboardPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-3xl px-4 py-6">
+      <main className="mx-auto max-w-6xl px-5 py-7">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold">Portfolio</h1>
           <div className="flex gap-2">
@@ -195,6 +196,8 @@ export default function DashboardPage() {
                 />
               ))}
             </div>
+
+            <RecentActivity wallets={allWallets} />
           </>
         )}
       </main>
