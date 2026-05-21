@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DepthOrder, ChartDimensions } from '../core/types.js';
 import { createLinearScale, computeDomain } from '../core/scales.js';
 import { generateBidPath, generateAskPath, generateDepthLinePath } from '../core/depth-chart.js';
@@ -28,9 +28,24 @@ export function DepthChart({
   askFillColor = chartColors.askFill,
   className,
 }: DepthChartProps) {
-  const width = dimensions?.width ?? 600;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(dimensions?.width ?? 600);
   const height = dimensions?.height ?? 300;
   const margin = { ...defaultMargin, ...dimensions?.margin };
+
+  // Measure the real container width so the paths are computed at the same
+  // width the SVG is rendered at — otherwise the chart squashes to one side.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (el.clientWidth > 0) setWidth(el.clientWidth);
+    const observer = new ResizeObserver(entries => {
+      const entry = entries[0];
+      if (entry && entry.contentRect.width > 0) setWidth(entry.contentRect.width);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const { bidAreaPath, askAreaPath, bidLine, askLine, midPrice } = useMemo(() => {
     if (bids.length === 0 && asks.length === 0) {
@@ -68,26 +83,28 @@ export function DepthChart({
   }, [bids, asks, width, height, margin]);
 
   return (
-    <ChartContainer width={width} height={height} className={className}>
-      {/* Grid line at midprice */}
-      {midPrice > 0 && (
-        <line
-          x1={midPrice}
-          x2={midPrice}
-          y1={margin.top}
-          y2={height - margin.bottom}
-          stroke={chartColors.crosshair}
-          strokeDasharray="4,4"
-        />
-      )}
+    <div ref={containerRef} className={className} style={{ width: '100%' }}>
+      <ChartContainer width={width} height={height} responsive={false}>
+        {/* Grid line at midprice */}
+        {midPrice > 0 && (
+          <line
+            x1={midPrice}
+            x2={midPrice}
+            y1={margin.top}
+            y2={height - margin.bottom}
+            stroke={chartColors.crosshair}
+            strokeDasharray="4,4"
+          />
+        )}
 
-      {/* Bid area + line */}
-      {bidAreaPath && <path d={bidAreaPath} fill={bidFillColor} />}
-      {bidLine && <path d={bidLine} fill="none" stroke={bidColor} strokeWidth={1.5} />}
+        {/* Bid area + line */}
+        {bidAreaPath && <path d={bidAreaPath} fill={bidFillColor} />}
+        {bidLine && <path d={bidLine} fill="none" stroke={bidColor} strokeWidth={1.5} />}
 
-      {/* Ask area + line */}
-      {askAreaPath && <path d={askAreaPath} fill={askFillColor} />}
-      {askLine && <path d={askLine} fill="none" stroke={askColor} strokeWidth={1.5} />}
-    </ChartContainer>
+        {/* Ask area + line */}
+        {askAreaPath && <path d={askAreaPath} fill={askFillColor} />}
+        {askLine && <path d={askLine} fill="none" stroke={askColor} strokeWidth={1.5} />}
+      </ChartContainer>
+    </div>
   );
 }
