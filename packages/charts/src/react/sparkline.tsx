@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { generateSparklinePath } from '../core/sparkline.js';
-import { chartColors } from '../utils/color.js';
+import { useCssChartColors } from '../utils/use-css-chart-colors.js';
 
 export interface SparklineProps {
   data: number[];
@@ -19,9 +19,9 @@ export function Sparkline({
   strokeWidth = 1.5,
   className,
 }: SparklineProps) {
+  const theme = useCssChartColors();
   const resolvedColor =
-    color ??
-    (data.length >= 2 && data[data.length - 1] >= data[0] ? chartColors.bid : chartColors.ask);
+    color ?? (data.length >= 2 && data[data.length - 1] >= data[0] ? theme.bid : theme.ask);
 
   const path = useMemo(() => generateSparklinePath(data, width, height), [data, width, height]);
 

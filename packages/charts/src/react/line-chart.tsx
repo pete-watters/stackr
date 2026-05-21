@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { DataPoint, ChartDimensions } from '../core/types.js';
 import { createLinearScale, computeDomainFromPoints } from '../core/scales.js';
 import { generateLinePath } from '../core/line.js';
-import { chartColors } from '../utils/color.js';
+import { useCssChartColors } from '../utils/use-css-chart-colors.js';
 import { ChartContainer } from './chart-container.js';
 
 export interface LineChartProps {
@@ -19,11 +19,13 @@ const defaultMargin = { top: 8, right: 8, bottom: 8, left: 8 };
 export function LineChart({
   data,
   dimensions,
-  color = chartColors.line,
+  color,
   strokeWidth = 2,
   interpolation = 'monotone',
   className,
 }: LineChartProps) {
+  const theme = useCssChartColors();
+  const resolvedColor = color ?? theme.line;
   const width = dimensions?.width ?? 400;
   const height = dimensions?.height ?? 200;
   const margin = { ...defaultMargin, ...dimensions?.margin };
@@ -50,7 +52,7 @@ export function LineChart({
         <path
           d={path}
           fill="none"
-          stroke={color}
+          stroke={resolvedColor}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"

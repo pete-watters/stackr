@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { DepthOrder, ChartDimensions } from '../core/types.js';
 import { createLinearScale, computeDomain } from '../core/scales.js';
 import { generateBidPath, generateAskPath, generateDepthLinePath } from '../core/depth-chart.js';
-import { chartColors } from '../utils/color.js';
+import { useCssChartColors } from '../utils/use-css-chart-colors.js';
 import { ChartContainer } from './chart-container.js';
 
 export interface DepthChartProps {
@@ -22,12 +22,17 @@ export function DepthChart({
   bids,
   asks,
   dimensions,
-  bidColor = chartColors.bid,
-  askColor = chartColors.ask,
-  bidFillColor = chartColors.bidFill,
-  askFillColor = chartColors.askFill,
+  bidColor,
+  askColor,
+  bidFillColor,
+  askFillColor,
   className,
 }: DepthChartProps) {
+  const theme = useCssChartColors();
+  const resolvedBidColor = bidColor ?? theme.bid;
+  const resolvedAskColor = askColor ?? theme.ask;
+  const resolvedBidFillColor = bidFillColor ?? theme.bidFill;
+  const resolvedAskFillColor = askFillColor ?? theme.askFill;
   const width = dimensions?.width ?? 600;
   const height = dimensions?.height ?? 300;
   const margin = { ...defaultMargin, ...dimensions?.margin };
@@ -76,18 +81,18 @@ export function DepthChart({
           x2={midPrice}
           y1={margin.top}
           y2={height - margin.bottom}
-          stroke={chartColors.crosshair}
+          stroke={theme.crosshair}
           strokeDasharray="4,4"
         />
       )}
 
       {/* Bid area + line */}
-      {bidAreaPath && <path d={bidAreaPath} fill={bidFillColor} />}
-      {bidLine && <path d={bidLine} fill="none" stroke={bidColor} strokeWidth={1.5} />}
+      {bidAreaPath && <path d={bidAreaPath} fill={resolvedBidFillColor} />}
+      {bidLine && <path d={bidLine} fill="none" stroke={resolvedBidColor} strokeWidth={1.5} />}
 
       {/* Ask area + line */}
-      {askAreaPath && <path d={askAreaPath} fill={askFillColor} />}
-      {askLine && <path d={askLine} fill="none" stroke={askColor} strokeWidth={1.5} />}
+      {askAreaPath && <path d={askAreaPath} fill={resolvedAskFillColor} />}
+      {askLine && <path d={askLine} fill="none" stroke={resolvedAskColor} strokeWidth={1.5} />}
     </ChartContainer>
   );
 }

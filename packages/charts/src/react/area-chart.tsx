@@ -3,7 +3,7 @@ import type { DataPoint, ChartDimensions } from '../core/types.js';
 import { createLinearScale, computeDomainFromPoints } from '../core/scales.js';
 import { generateLinePath } from '../core/line.js';
 import { generateAreaPath } from '../core/area.js';
-import { chartColors } from '../utils/color.js';
+import { useCssChartColors } from '../utils/use-css-chart-colors.js';
 import { ChartContainer } from './chart-container.js';
 
 export interface AreaChartProps {
@@ -22,13 +22,16 @@ const defaultMargin = { top: 8, right: 8, bottom: 8, left: 8 };
 export function AreaChart({
   data,
   dimensions,
-  lineColor = chartColors.line,
-  fillColor = chartColors.line,
+  lineColor,
+  fillColor,
   fillOpacity = 0.1,
   strokeWidth = 2,
   interpolation = 'monotone',
   className,
 }: AreaChartProps) {
+  const theme = useCssChartColors();
+  const resolvedLineColor = lineColor ?? theme.line;
+  const resolvedFillColor = fillColor ?? theme.line;
   const width = dimensions?.width ?? 400;
   const height = dimensions?.height ?? 200;
   const margin = { ...defaultMargin, ...dimensions?.margin };
@@ -56,12 +59,12 @@ export function AreaChart({
 
   return (
     <ChartContainer width={width} height={height} className={className}>
-      {areaPath && <path d={areaPath} fill={fillColor} opacity={fillOpacity} />}
+      {areaPath && <path d={areaPath} fill={resolvedFillColor} opacity={fillOpacity} />}
       {linePath && (
         <path
           d={linePath}
           fill="none"
-          stroke={lineColor}
+          stroke={resolvedLineColor}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
