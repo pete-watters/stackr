@@ -58,8 +58,24 @@
   }
 }
 
-.dark {
-  /* Terminal — pure-black canvas, hairline rules, green/red signal */
+/* ================================================================
+   THEMES — each is a complete token set. next-themes applies the
+   theme class + `dark` to <html>, so `dark:` utilities stay active
+   while the palette/radius/fonts come from the theme class.
+   Shared chain brand colours (brightened for dark canvases).
+   ================================================================ */
+.theme-terminal,
+.theme-kraken,
+.theme-leather,
+.theme-onyx {
+  --color-chain-btc: #f7931a;
+  --color-chain-eth: #849eff;
+  --color-chain-stx: #7f80ff;
+  --color-chain-sol: #b97cff;
+}
+
+/* A — Terminal: pure-black, monospace, green/red signal, sharp edges */
+.theme-terminal {
   --color-background: #000000;
   --color-foreground: #e8e8e8;
   --color-card: #060606;
@@ -88,11 +104,126 @@
   --color-chart-3: #849eff;
   --color-chart-4: #b97cff;
   --color-chart-5: #f5a623;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --font-sans: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
+  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
+}
 
-  --color-chain-btc: #f7931a;
-  --color-chain-eth: #849eff;
-  --color-chain-stx: #7f80ff;
-  --color-chain-sol: #b97cff;
+/* B — Kraken Pro: deep slate panels, indigo accent, sans + mono, rounded */
+.theme-kraken {
+  --color-background: #0a0c12;
+  --color-foreground: #eceef5;
+  --color-card: #161a26;
+  --color-card-foreground: #eceef5;
+  --color-popover: #161a26;
+  --color-popover-foreground: #eceef5;
+  --color-primary: #6d5efc;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #1b2030;
+  --color-secondary-foreground: #eceef5;
+  --color-muted: #141823;
+  --color-muted-foreground: #8a90a6;
+  --color-accent: #1b2030;
+  --color-accent-foreground: #eceef5;
+  --color-destructive: #ff5d6c;
+  --color-destructive-foreground: #ffffff;
+  --color-success: #2fd18a;
+  --color-success-foreground: #04140c;
+  --color-warning: #f5b14c;
+  --color-warning-foreground: #1a1206;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-input: rgba(255, 255, 255, 0.12);
+  --color-ring: #6d5efc;
+  --color-chart-1: #6d5efc;
+  --color-chart-2: #2fd18a;
+  --color-chart-3: #849eff;
+  --color-chart-4: #b97cff;
+  --color-chart-5: #ff5d6c;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
+  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-spline-mono), ui-monospace, monospace;
+}
+
+/* C — Leather Warm: warm near-black, Bitcoin-orange accent, editorial, soft */
+.theme-leather {
+  --color-background: #15110b;
+  --color-foreground: #f4ede1;
+  --color-card: #1e1910;
+  --color-card-foreground: #f4ede1;
+  --color-popover: #241e13;
+  --color-popover-foreground: #f4ede1;
+  --color-primary: #f7931a;
+  --color-primary-foreground: #1a1206;
+  --color-secondary: #241e13;
+  --color-secondary-foreground: #f4ede1;
+  --color-muted: #1e1910;
+  --color-muted-foreground: #a89c87;
+  --color-accent: #2a2316;
+  --color-accent-foreground: #f4ede1;
+  --color-destructive: #e8775c;
+  --color-destructive-foreground: #1a1206;
+  --color-success: #6cc296;
+  --color-success-foreground: #0f2417;
+  --color-warning: #f5a623;
+  --color-warning-foreground: #1a1206;
+  --color-border: rgba(243, 236, 224, 0.1);
+  --color-input: rgba(243, 236, 224, 0.14);
+  --color-ring: #f7931a;
+  --color-chart-1: #f7931a;
+  --color-chart-2: #e8775c;
+  --color-chart-3: #6cc296;
+  --color-chart-4: #b97cff;
+  --color-chart-5: #849eff;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+/* D — Onyx Ledger: near-black + gold, ruled tables, sharp */
+.theme-onyx {
+  --color-background: #08090b;
+  --color-foreground: #ece7db;
+  --color-card: #0c0e11;
+  --color-card-foreground: #ece7db;
+  --color-popover: #0e1014;
+  --color-popover-foreground: #ece7db;
+  --color-primary: #e3b23c;
+  --color-primary-foreground: #1a1505;
+  --color-secondary: #14161a;
+  --color-secondary-foreground: #ece7db;
+  --color-muted: #101216;
+  --color-muted-foreground: #8b887c;
+  --color-accent: #16181d;
+  --color-accent-foreground: #ece7db;
+  --color-destructive: #db6f5c;
+  --color-destructive-foreground: #1a1206;
+  --color-success: #58b58a;
+  --color-success-foreground: #06210f;
+  --color-warning: #e3b23c;
+  --color-warning-foreground: #1a1505;
+  --color-border: rgba(236, 231, 219, 0.1);
+  --color-input: rgba(236, 231, 219, 0.14);
+  --color-ring: #e3b23c;
+  --color-chart-1: #e3b23c;
+  --color-chart-2: #db6f5c;
+  --color-chart-3: #58b58a;
+  --color-chart-4: #849eff;
+  --color-chart-5: #b97cff;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 2px;
+  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-spline-mono), ui-monospace, monospace;
 }
 
 @layer base {
@@ -106,14 +237,29 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  /* Terminal scanline atmosphere — dark only */
-  .dark body {
+  /* Per-theme atmospheres */
+  .theme-terminal body,
+  .theme-onyx body {
     background-image: repeating-linear-gradient(
       0deg,
       rgba(255, 255, 255, 0.013) 0px,
       rgba(255, 255, 255, 0.013) 1px,
       transparent 1px,
       transparent 3px
+    );
+  }
+  .theme-kraken body {
+    background-image: radial-gradient(
+      1100px 560px at 82% -8%,
+      rgba(109, 94, 252, 0.12),
+      transparent 60%
+    );
+  }
+  .theme-leather body {
+    background-image: radial-gradient(
+      900px 480px at 85% -5%,
+      rgba(247, 147, 26, 0.08),
+      transparent 60%
     );
   }
 
