@@ -3,6 +3,5 @@
   "packages/models": "0.0.0",
   "packages/services": "0.0.0",
   "packages/queries": "0.0.0",
-  "packages/ui": "0.0.0",
-  "packages/panda-preset": "0.0.0"
+  "packages/ui": "0.0.0"
 }
