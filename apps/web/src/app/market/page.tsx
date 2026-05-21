@@ -71,7 +71,7 @@ export default function MarketPage() {
               <DepthChart
                 bids={orderbook.bids}
                 asks={orderbook.asks}
-                dimensions={{ width: 500, height: 300 }}
+                dimensions={{ height: 300 }}
               />
             </Card>
           </div>
