@@ -19,7 +19,6 @@ Stackr is a multi-chain address watcher where users can add BTC/STX/ETH/SOL wall
 - `packages/tsconfig-config` — Shared TypeScript configs
 - `packages/prettier-config` — Shared Prettier config
 - `packages/eslint-config` — Shared ESLint flat configs
-- `packages/panda-preset` — Design tokens, dark theme, recipes
 - `packages/models` — Zod schemas + types (Wallet, Balance, Chain)
 - `packages/services` — Multi-chain API clients (BTC, STX, ETH, SOL)
 - `packages/queries` — TanStack React Query hooks + query key factories
