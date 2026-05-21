@@ -16,15 +16,16 @@ import { useWalletConnections, type WalletId } from '@/lib/use-wallet-connection
 export function WalletConnectModal() {
   const wallets = useWalletConnections();
   const [pending, setPending] = useState<WalletId | null>(null);
+  const [error, setError] = useState<{ id: WalletId; message: string } | null>(null);
   const anyConnected = wallets.some(w => w.connected);
 
   async function run(id: WalletId, action: () => void | Promise<void>) {
     setPending(id);
+    setError(null);
     try {
       await action();
     } catch {
-      // User rejected or the wallet errored; surface nothing — the row stays
-      // in its previous state and the user can retry.
+      setError({ id, message: 'Connection failed or was rejected — try again.' });
     } finally {
       setPending(null);
     }
@@ -46,38 +47,59 @@ export function WalletConnectModal() {
 
         <ul className="mt-4 flex flex-col gap-2">
           {wallets.map(wallet => (
-            <li key={wallet.id} className="flex items-center justify-between rounded-lg border p-3">
-              <div className="flex items-center gap-3">
-                <div className="flex -space-x-2">
-                  {wallet.chains.map(chain => (
-                    <ChainAvatar key={chain} chain={chain} size="sm" />
-                  ))}
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-foreground">{wallet.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {wallet.chains.map(c => chainMeta[c].symbol).join(' · ')}
+            <li key={wallet.id} className="rounded-lg border p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-2">
+                    {wallet.chains.map(chain => (
+                      <ChainAvatar key={chain} chain={chain} size="sm" />
+                    ))}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">{wallet.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {wallet.chains.map(c => chainMeta[c].symbol).join(' · ')}
+                    </div>
                   </div>
                 </div>
+
+                {wallet.connected ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => run(wallet.id, wallet.disconnect)}
+                    disabled={pending === wallet.id}
+                  >
+                    Disconnect
+                  </Button>
+                ) : wallet.installed ? (
+                  <Button
+                    size="sm"
+                    onClick={() => run(wallet.id, wallet.connect)}
+                    disabled={pending !== null}
+                  >
+                    {pending === wallet.id ? 'Connecting…' : 'Connect'}
+                  </Button>
+                ) : (
+                  <Button asChild size="sm" variant="outline">
+                    <a href={wallet.installUrl} target="_blank" rel="noopener noreferrer">
+                      Install
+                    </a>
+                  </Button>
+                )}
               </div>
 
-              {wallet.connected ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => run(wallet.id, wallet.disconnect)}
-                  disabled={pending === wallet.id}
-                >
-                  Disconnect
-                </Button>
+              {error?.id === wallet.id ? (
+                <p role="alert" className="mt-2 text-xs text-destructive">
+                  {error.message}
+                </p>
               ) : (
-                <Button
-                  size="sm"
-                  onClick={() => run(wallet.id, wallet.connect)}
-                  disabled={pending !== null}
-                >
-                  {pending === wallet.id ? 'Connecting…' : 'Connect'}
-                </Button>
+                !wallet.installed &&
+                !wallet.connected && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Not detected in this browser.
+                  </p>
+                )
               )}
             </li>
           ))}

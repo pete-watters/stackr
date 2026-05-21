@@ -25,11 +25,6 @@
       "release-type": "node",
       "component": "ui",
       "changelog-path": "CHANGELOG.md"
-    },
-    "packages/panda-preset": {
-      "release-type": "node",
-      "component": "panda-preset",
-      "changelog-path": "CHANGELOG.md"
     }
   }
 }
