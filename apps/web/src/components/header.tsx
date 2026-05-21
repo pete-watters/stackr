@@ -13,29 +13,32 @@ export function Header() {
   const toggleHideBalance = useSettingsStore(s => s.toggleHideBalance);
 
   return (
-    <header className="flex items-center justify-between border-b px-4 py-3">
-      <Link href="/" className="text-xl font-bold text-foreground">
-        Stackr
+    <header className="flex items-center justify-between border-b px-5 py-3">
+      <Link href="/" className="flex items-center text-lg font-bold tracking-tight text-foreground">
+        STACKR<span className="font-medium text-primary">{'////'}</span>
       </Link>
-      <nav className="flex items-center gap-4">
-        <Link href="/wallet/add" className="text-sm font-semibold text-primary">
+      <nav className="flex items-center gap-5">
+        <Link
+          href="/wallet/add"
+          className="text-xs font-medium uppercase tracking-widest text-primary transition-colors"
+        >
           Add Wallet
         </Link>
         <Link
           href="/holdings"
-          className="text-sm font-semibold text-muted-foreground hover:text-foreground"
+          className="text-xs font-medium uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
         >
           Holdings
         </Link>
         <Link
           href="/market"
-          className="text-sm font-semibold text-muted-foreground hover:text-foreground"
+          className="text-xs font-medium uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
         >
           Market
         </Link>
         <Link
           href="/settings"
-          className="text-sm font-semibold text-muted-foreground hover:text-foreground"
+          className="text-xs font-medium uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
         >
           Settings
         </Link>
