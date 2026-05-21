@@ -1,6 +1,14 @@
 import type { Metadata, Viewport } from 'next';
+import { IBM_Plex_Mono } from 'next/font/google';
 import { Providers } from '@/lib/providers';
 import './globals.css';
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-plex-mono',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://stackr.ie'),
@@ -31,7 +39,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={plexMono.variable} suppressHydrationWarning>
       <body>
         <Providers>{children}</Providers>
       </body>
