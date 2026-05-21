@@ -13,6 +13,7 @@ import { Header } from '@/components/header';
 import { WalletCard } from '@/components/wallet-card';
 import { PortfolioSummary } from '@/components/portfolio-summary';
 import { PortfolioBreakdown } from '@/components/portfolio-breakdown';
+import { RecentActivity } from '@/components/recent-activity';
 
 export default function DashboardPage() {
   const wallets = useWalletStore(s => s.wallets);
@@ -195,6 +196,8 @@ export default function DashboardPage() {
                 />
               ))}
             </div>
+
+            <RecentActivity wallets={allWallets} />
           </>
         )}
       </main>
