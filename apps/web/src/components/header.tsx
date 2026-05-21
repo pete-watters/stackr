@@ -5,7 +5,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@stackr/ui';
 import { ChainStatusIndicators } from '@/components/chain-status-indicators';
 import { WalletConnectModal } from '@/components/wallet-connect-modal';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { ThemePicker } from '@/components/theme-picker';
 import { useSettingsStore } from '@/lib/settings-store';
 
 export function Header() {
@@ -56,7 +56,7 @@ export function Header() {
             <Eye className="h-[1.2rem] w-[1.2rem]" />
           )}
         </Button>
-        <ThemeToggle />
+        <ThemePicker />
       </nav>
     </header>
   );
