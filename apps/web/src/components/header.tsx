@@ -37,6 +37,12 @@ export function Header() {
           Market
         </Link>
         <Link
+          href="/charts"
+          className="text-xs font-medium uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Charts
+        </Link>
+        <Link
           href="/settings"
           className="text-xs font-medium uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
         >
