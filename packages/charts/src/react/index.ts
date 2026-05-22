@@ -1,6 +1,7 @@
 export { ChartContainer, type ChartContainerProps } from './chart-container.js';
 export { LineChart, type LineChartProps } from './line-chart.js';
 export { AreaChart, type AreaChartProps } from './area-chart.js';
+export { PriceChart, type PriceChartProps } from './price-chart.js';
 export { Sparkline, type SparklineProps } from './sparkline.js';
 export { DepthChart, type DepthChartProps } from './depth-chart.js';
 export { Axis, type AxisProps } from './axis.js';

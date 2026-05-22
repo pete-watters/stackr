@@ -22,6 +22,8 @@ export {
   searchStocks,
   fetchStockQuote,
   fetchStockQuotes,
+  fetchStockPriceHistory,
+  parseDailyCloses,
   type StockSearchResult,
   type StockQuote,
 } from './stocks.js';
