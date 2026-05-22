@@ -10,6 +10,7 @@ import { TooltipProvider } from '@stackr/ui';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ConnectedAddressSync } from '@/components/connected-address-sync';
 import { ConnectedSolanaAddressSync } from '@/components/connected-solana-address-sync';
+import { PostHogProvider, PostHogPageview } from '@/lib/posthog-provider';
 import { wagmiConfig } from '@/lib/wagmi-config';
 import { solanaEndpoint } from '@/lib/solana-config';
 import { useMemo, useState, type ReactNode } from 'react';
@@ -39,7 +40,10 @@ export function Providers({ children }: { children: ReactNode }) {
                 <TooltipProvider delayDuration={300}>
                   <ConnectedAddressSync />
                   <ConnectedSolanaAddressSync />
-                  {children}
+                  <PostHogProvider>
+                    <PostHogPageview />
+                    {children}
+                  </PostHogProvider>
                 </TooltipProvider>
               </WalletProvider>
             </ConnectionProvider>
