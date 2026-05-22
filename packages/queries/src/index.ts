@@ -7,3 +7,4 @@ export { useOrderbook } from './use-orderbook.js';
 export { useTransactions } from './use-transactions.js';
 export { useStockSearch } from './use-stock-search.js';
 export { useStockQuotes } from './use-stock-quotes.js';
+export { useStockPriceHistory } from './use-stock-price-history.js';
