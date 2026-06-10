@@ -1,5 +1,10 @@
+import { z } from 'zod';
 import type { Chain, Transaction } from '@stackr/models';
-import { chainMeta } from '@stackr/models';
+import { TransactionSchema } from '@stackr/models';
+import type { TransactionAdapter } from './ports.js';
+import { parseOrThrow } from './validate.js';
+
+const TransactionListSchema = z.array(TransactionSchema);
 
 export async function fetchTransactions(chain: Chain, address: string): Promise<Transaction[]> {
   switch (chain) {
@@ -14,46 +19,125 @@ export async function fetchTransactions(chain: Chain, address: string): Promise<
   }
 }
 
+// ---------------------------------------------------------------------------
+// BTC — Blockstream address/txs
+// ---------------------------------------------------------------------------
+
+const BlockstreamTxSchema = z.object({
+  txid: z.string(),
+  vout: z.array(
+    z.object({
+      scriptpubkey_address: z.string().optional(),
+      value: z.number().optional(),
+    }),
+  ),
+  vin: z.array(
+    z.object({
+      prevout: z.object({ scriptpubkey_address: z.string().optional() }).nullable().optional(),
+    }),
+  ),
+  status: z
+    .object({
+      confirmed: z.boolean().optional(),
+      block_time: z.number().optional(),
+    })
+    .optional(),
+});
+
+const BlockstreamTxListSchema = z.array(BlockstreamTxSchema);
+
+type BlockstreamTx = z.infer<typeof BlockstreamTxSchema>;
+
+/**
+ * Normalize Blockstream txs into domain `Transaction`s. Bitcoin has no
+ * "from/to" — direction is inferred from whether any output pays the watched
+ * address, and the amount is the sum of the relevant outputs. Pure (no
+ * network) so the UTXO direction logic is unit-testable.
+ */
+export function normalizeBtcTransactions(txs: BlockstreamTx[], address: string): Transaction[] {
+  const normalized = txs.slice(0, 20).map(tx => {
+    const isReceive = tx.vout.some(o => o.scriptpubkey_address === address);
+
+    const amount = tx.vout
+      .filter(o =>
+        isReceive ? o.scriptpubkey_address === address : o.scriptpubkey_address !== address,
+      )
+      .reduce((sum, o) => sum + (o.value ?? 0), 0);
+
+    const counterparty = isReceive
+      ? (tx.vin[0]?.prevout?.scriptpubkey_address ?? 'unknown')
+      : (tx.vout.find(o => o.scriptpubkey_address !== address)?.scriptpubkey_address ?? 'unknown');
+
+    return {
+      hash: tx.txid,
+      chain: 'btc' as const,
+      type: isReceive ? ('receive' as const) : ('send' as const),
+      amount: (amount / 1e8).toFixed(8),
+      counterparty,
+      timestamp: tx.status?.block_time
+        ? new Date(tx.status.block_time * 1000).toISOString()
+        : new Date().toISOString(),
+      confirmed: tx.status?.confirmed ?? false,
+    };
+  });
+
+  return parseOrThrow(TransactionListSchema, normalized, 'btc.fetchTransactions(egress)');
+}
+
 async function fetchBtcTransactions(address: string): Promise<Transaction[]> {
   const res = await fetch(`https://blockstream.info/api/address/${address}/txs`);
   if (!res.ok) throw new Error(`Blockstream API error: ${res.status}`);
 
-  const data = await res.json();
-  return (data as Array<Record<string, unknown>>)
-    .slice(0, 20)
-    .map((tx: Record<string, unknown>) => {
-      const vout = tx.vout as Array<{ scriptpubkey_address?: string; value?: number }>;
-      const vin = tx.vin as Array<{ prevout?: { scriptpubkey_address?: string } }>;
+  const data = parseOrThrow(
+    BlockstreamTxListSchema,
+    await res.json(),
+    'btc.fetchTransactions(ingress)',
+  );
+  return normalizeBtcTransactions(data, address);
+}
 
-      const isReceive = vout.some(
-        (o: { scriptpubkey_address?: string }) => o.scriptpubkey_address === address,
-      );
+// ---------------------------------------------------------------------------
+// ETH — Etherscan txlist
+// ---------------------------------------------------------------------------
 
-      const amount = vout
-        .filter((o: { scriptpubkey_address?: string }) =>
-          isReceive ? o.scriptpubkey_address === address : o.scriptpubkey_address !== address,
-        )
-        .reduce((sum: number, o: { value?: number }) => sum + (o.value ?? 0), 0);
+const EtherscanTxSchema = z.object({
+  hash: z.string(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  value: z.string().optional(),
+  timeStamp: z.string().optional(),
+  txreceipt_status: z.string().optional(),
+});
 
-      const counterparty = isReceive
-        ? (vin[0]?.prevout?.scriptpubkey_address ?? 'unknown')
-        : (vout.find((o: { scriptpubkey_address?: string }) => o.scriptpubkey_address !== address)
-            ?.scriptpubkey_address ?? 'unknown');
+/**
+ * Etherscan signals "no transactions" / rate limits via `status: '0'` with a
+ * string `result` message, and success via `status: '1'` with an array. The
+ * union captures both so ingress validation doesn't reject the empty case.
+ */
+const EtherscanTxListSchema = z.object({
+  status: z.string(),
+  result: z.union([z.array(EtherscanTxSchema), z.string()]),
+});
 
-      const status = tx.status as { confirmed?: boolean; block_time?: number } | undefined;
+type EtherscanTx = z.infer<typeof EtherscanTxSchema>;
 
-      return {
-        hash: tx.txid as string,
-        chain: 'btc' as const,
-        type: isReceive ? 'receive' : 'send',
-        amount: (amount / 1e8).toFixed(8),
-        counterparty,
-        timestamp: status?.block_time
-          ? new Date(status.block_time * 1000).toISOString()
-          : new Date().toISOString(),
-        confirmed: status?.confirmed ?? false,
-      };
-    });
+/** Normalize Etherscan txs into domain `Transaction`s. */
+export function normalizeEthTransactions(txs: EtherscanTx[], address: string): Transaction[] {
+  const lower = address.toLowerCase();
+  const normalized = txs.map(tx => {
+    const isReceive = tx.to?.toLowerCase() === lower;
+    return {
+      hash: tx.hash,
+      chain: 'eth' as const,
+      type: isReceive ? ('receive' as const) : ('send' as const),
+      amount: (parseInt(tx.value ?? '0') / 1e18).toFixed(8),
+      counterparty: (isReceive ? tx.from : tx.to) ?? 'unknown',
+      timestamp: new Date(parseInt(tx.timeStamp ?? '0') * 1000).toISOString(),
+      confirmed: tx.txreceipt_status === '1',
+    };
+  });
+
+  return parseOrThrow(TransactionListSchema, normalized, 'eth.fetchTransactions(egress)');
 }
 
 async function fetchEthTransactions(address: string, apiKey?: string): Promise<Transaction[]> {
@@ -63,18 +147,64 @@ async function fetchEthTransactions(address: string, apiKey?: string): Promise<T
   );
   if (!res.ok) throw new Error(`Etherscan API error: ${res.status}`);
 
-  const data = await res.json();
-  if (data.status !== '1') return [];
+  const data = parseOrThrow(
+    EtherscanTxListSchema,
+    await res.json(),
+    'eth.fetchTransactions(ingress)',
+  );
+  if (data.status !== '1' || !Array.isArray(data.result)) return [];
 
-  return (data.result as Array<Record<string, string>>).map(tx => ({
-    hash: tx.hash,
-    chain: 'eth' as const,
-    type: tx.to?.toLowerCase() === address.toLowerCase() ? 'receive' : 'send',
-    amount: (parseInt(tx.value) / 1e18).toFixed(8),
-    counterparty: tx.to?.toLowerCase() === address.toLowerCase() ? tx.from : tx.to,
-    timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
-    confirmed: tx.txreceipt_status === '1',
-  }));
+  return normalizeEthTransactions(data.result, address);
+}
+
+// ---------------------------------------------------------------------------
+// STX — Hiro address/transactions
+// ---------------------------------------------------------------------------
+
+const HiroTxSchema = z.object({
+  tx_id: z.string(),
+  tx_type: z.string(),
+  tx_status: z.string().optional(),
+  sender_address: z.string().optional(),
+  burn_block_time_iso: z.string().optional(),
+  token_transfer: z
+    .object({
+      recipient_address: z.string().optional(),
+      amount: z.string().optional(),
+    })
+    .optional(),
+});
+
+const HiroTxListSchema = z.object({
+  results: z.array(HiroTxSchema),
+});
+
+type HiroTx = z.infer<typeof HiroTxSchema>;
+
+/**
+ * Normalize Hiro txs into domain `Transaction`s, keeping only STX
+ * `token_transfer`s (contract calls and coinbases are out of scope for the
+ * activity feed).
+ */
+export function normalizeStxTransactions(txs: HiroTx[], address: string): Transaction[] {
+  const normalized = txs
+    .filter(tx => tx.tx_type === 'token_transfer')
+    .map(tx => {
+      const isReceive = tx.token_transfer?.recipient_address === address;
+      return {
+        hash: tx.tx_id,
+        chain: 'stx' as const,
+        type: isReceive ? ('receive' as const) : ('send' as const),
+        amount: (parseInt(tx.token_transfer?.amount ?? '0') / 1e6).toFixed(6),
+        counterparty: isReceive
+          ? (tx.sender_address ?? 'unknown')
+          : (tx.token_transfer?.recipient_address ?? 'unknown'),
+        timestamp: tx.burn_block_time_iso ?? new Date().toISOString(),
+        confirmed: tx.tx_status === 'success',
+      };
+    });
+
+  return parseOrThrow(TransactionListSchema, normalized, 'stx.fetchTransactions(egress)');
 }
 
 async function fetchStxTransactions(address: string): Promise<Transaction[]> {
@@ -83,34 +213,48 @@ async function fetchStxTransactions(address: string): Promise<Transaction[]> {
   );
   if (!res.ok) throw new Error(`Hiro API error: ${res.status}`);
 
-  const data = await res.json();
-  return (data.results as Array<Record<string, unknown>>)
-    .filter((tx: Record<string, unknown>) => tx.tx_type === 'token_transfer')
-    .map((tx: Record<string, unknown>) => {
-      const tokenTransfer = tx.token_transfer as
-        | {
-            recipient_address?: string;
-            amount?: string;
-          }
-        | undefined;
-      const isReceive = tokenTransfer?.recipient_address === address;
+  const data = parseOrThrow(HiroTxListSchema, await res.json(), 'stx.fetchTransactions(ingress)');
+  return normalizeStxTransactions(data.results, address);
+}
 
-      return {
-        hash: tx.tx_id as string,
-        chain: 'stx' as const,
-        type: isReceive ? 'receive' : 'send',
-        amount: (parseInt(tokenTransfer?.amount ?? '0') / 1e6).toFixed(6),
-        counterparty: isReceive
-          ? (tx.sender_address as string)
-          : (tokenTransfer?.recipient_address ?? 'unknown'),
-        timestamp: (tx.burn_block_time_iso as string) ?? new Date().toISOString(),
-        confirmed: tx.tx_status === 'success',
-      };
-    });
+// ---------------------------------------------------------------------------
+// SOL — getSignaturesForAddress
+// ---------------------------------------------------------------------------
+
+const SolanaSignatureSchema = z.object({
+  signature: z.string(),
+  blockTime: z.number().nullable().optional(),
+  err: z.unknown(),
+});
+
+const SolanaSignaturesSchema = z.object({
+  result: z.array(SolanaSignatureSchema).nullable().optional(),
+});
+
+type SolanaSignature = z.infer<typeof SolanaSignatureSchema>;
+
+/**
+ * Normalize Solana signatures into domain `Transaction`s. Signatures alone
+ * don't carry direction or amount (that needs a `getTransaction` per sig), so
+ * those are placeholdered — direction defaults to `receive` and amount to `0`.
+ */
+export function normalizeSolTransactions(signatures: SolanaSignature[]): Transaction[] {
+  const normalized = signatures.map(sig => ({
+    hash: sig.signature,
+    chain: 'sol' as const,
+    type: 'receive' as const,
+    amount: '0',
+    counterparty: 'unknown',
+    timestamp: sig.blockTime
+      ? new Date(sig.blockTime * 1000).toISOString()
+      : new Date().toISOString(),
+    confirmed: sig.err === null,
+  }));
+
+  return parseOrThrow(TransactionListSchema, normalized, 'sol.fetchTransactions(egress)');
 }
 
 async function fetchSolTransactions(address: string): Promise<Transaction[]> {
-  // Solana RPC - get recent signatures
   const sigRes = await fetch('https://api.mainnet-beta.solana.com', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -124,22 +268,15 @@ async function fetchSolTransactions(address: string): Promise<Transaction[]> {
 
   if (!sigRes.ok) throw new Error(`Solana RPC error: ${sigRes.status}`);
 
-  const sigData = await sigRes.json();
-  const signatures = (sigData.result ?? []) as Array<{
-    signature: string;
-    blockTime?: number;
-    err: unknown;
-  }>;
-
-  return signatures.map(sig => ({
-    hash: sig.signature,
-    chain: 'sol' as const,
-    type: 'receive' as const, // Simplified — full tx parsing requires getTransaction
-    amount: '0',
-    counterparty: 'unknown',
-    timestamp: sig.blockTime
-      ? new Date(sig.blockTime * 1000).toISOString()
-      : new Date().toISOString(),
-    confirmed: sig.err === null,
-  }));
+  const data = parseOrThrow(
+    SolanaSignaturesSchema,
+    await sigRes.json(),
+    'sol.fetchTransactions(ingress)',
+  );
+  return normalizeSolTransactions(data.result ?? []);
 }
+
+/** Multi-chain implementation of the transaction port. */
+export const transactionAdapter: TransactionAdapter = {
+  fetchTransactions,
+};
