@@ -6,6 +6,12 @@ export const alt = 'Stackr — Cross-chain Web3 portfolio for self-custody';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
+// The image is built from static content (no request data), so it is always
+// statically generated — the web build already prerenders it as a static asset.
+// Declaring it explicitly is also what the Capacitor static export requires
+// (`output: 'export'` rejects metadata image routes without static config).
+export const dynamic = 'force-static';
+
 export default async function OGImage() {
   const fontData = readFileSync(join(process.cwd(), 'src/app/LiberationSans-Bold.ttf'));
 
