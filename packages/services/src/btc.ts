@@ -3,6 +3,7 @@ import type { Balance } from '@stackr/models';
 import { BalanceSchema, chainMeta } from '@stackr/models';
 import type { BalanceAdapter } from './ports.js';
 import { parseOrThrow } from './validate.js';
+import { formatBaseUnits } from './base-units.js';
 
 const BLOCKSTREAM_API = 'https://blockstream.info/api';
 
@@ -41,7 +42,7 @@ export async function fetchBtcBalance(address: string): Promise<Balance> {
   const totalSatoshis = confirmedBalance + mempoolBalance;
 
   const { decimals } = chainMeta.btc;
-  const balance = (totalSatoshis / 10 ** decimals).toFixed(decimals);
+  const balance = formatBaseUnits(totalSatoshis, decimals);
 
   // Egress boundary: guarantee a valid domain `Balance` leaves the adapter.
   return parseOrThrow(
