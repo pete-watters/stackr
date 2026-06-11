@@ -41,6 +41,12 @@ export {
   type BookState,
 } from './orderbook.js';
 export {
+  parseTickerFrame,
+  createKrakenTickerWs,
+  type Tick,
+  type KrakenTickerMessage,
+} from './ticker.js';
+export {
   fetchTransactions,
   transactionAdapter,
   normalizeBtcTransactions,

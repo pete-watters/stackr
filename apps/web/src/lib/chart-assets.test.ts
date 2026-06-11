@@ -3,8 +3,10 @@ import { bdd } from './bdd';
 const { then, and } = bdd;
 import {
   CHART_RANGES,
+  appendLiveTicks,
   assetId,
   buildAssetOptions,
+  cryptoPair,
   findAsset,
   formatAxisTime,
   isRangeAllowed,
@@ -93,5 +95,49 @@ feature('data + time formatting', () => {
       expect(formatAxisTime(ms, 1)).toMatch(/\d{1,2}:\d{2}/),
     );
     and('a 1-year range shows a 2-digit year', () => expect(formatAxisTime(ms, 365)).toMatch(/26/));
+  });
+});
+
+feature('crypto pair mapping', () => {
+  scenario('maps each chain to its Kraken USD pair', () => {
+    then('btc maps to BTC/USD', () => expect(cryptoPair('btc').pair).toBe('BTC/USD'));
+    and('stx maps to STX/USD', () => expect(cryptoPair('stx').pair).toBe('STX/USD'));
+    and('a mid price is provided for the mock book', () =>
+      expect(cryptoPair('eth').midPrice).toBeGreaterThan(0),
+    );
+  });
+});
+
+feature('live tick tail', () => {
+  const history = [
+    { x: 1_000, y: 10 },
+    { x: 2_000, y: 11 },
+  ];
+
+  scenario('returns history unchanged when there are no ticks', () => {
+    then('the original series is returned', () =>
+      expect(appendLiveTicks(history, [])).toEqual(history),
+    );
+  });
+
+  scenario('appends only ticks newer than the last polled point', () => {
+    const ticks = [
+      { timestamp: 1_500, price: 99 }, // older than last point — dropped
+      { timestamp: 3_000, price: 12 },
+      { timestamp: 4_000, price: 13 },
+    ];
+    then('the stale tick is dropped and newer ticks extend the line', () =>
+      expect(appendLiveTicks(history, ticks)).toEqual([
+        { x: 1_000, y: 10 },
+        { x: 2_000, y: 11 },
+        { x: 3_000, y: 12 },
+        { x: 4_000, y: 13 },
+      ]),
+    );
+  });
+
+  scenario('returns history unchanged when every tick predates the last point', () => {
+    const ticks = [{ timestamp: 1_500, price: 99 }];
+    then('nothing is appended', () => expect(appendLiveTicks(history, ticks)).toEqual(history));
   });
 });
