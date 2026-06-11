@@ -19,3 +19,9 @@ export {
   type StockHolding,
   type Holding,
 } from './holding.js';
+export {
+  StockSearchResultSchema,
+  StockQuoteSchema,
+  type StockSearchResult,
+  type StockQuote,
+} from './stock.js';

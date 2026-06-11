@@ -1,8 +1,15 @@
 import type { Order, OrderBook } from '@stackr/models';
+import { OrderBookSchema } from '@stackr/models';
+import type { OrderBookAdapter } from './ports.js';
+import { parseOrThrow } from './validate.js';
 
 /**
  * Serialize raw orderbook data — sort and compute cumulative amounts.
  * Ported from crypto-view pattern.
+ *
+ * This is the egress boundary for orderbook data: whether the raw ladders came
+ * from a REST snapshot or a live Kraken WS frame, the validated `OrderBook` is
+ * the only shape the charts layer ever consumes.
  */
 export function serializeOrderBook(
   rawBids: Array<[number, number]>,
@@ -25,12 +32,16 @@ export function serializeOrderBook(
     return { price, amount, cumulativeAmount: askCumulative };
   });
 
-  return {
-    bids,
-    asks,
-    pair,
-    updatedAt: new Date().toISOString(),
-  };
+  return parseOrThrow(
+    OrderBookSchema,
+    {
+      bids,
+      asks,
+      pair,
+      updatedAt: new Date().toISOString(),
+    },
+    'orderbook.serialize(egress)',
+  );
 }
 
 /**
@@ -109,3 +120,8 @@ export function createKrakenOrderBookWs(
     close: () => ws.close(),
   };
 }
+
+/** Pure-transform implementation of the orderbook port. */
+export const orderBookAdapter: OrderBookAdapter = {
+  serialize: serializeOrderBook,
+};
