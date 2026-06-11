@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { Chain } from '@stackr/models';
 import { ChainSchema, chainMeta, validateAddress } from '@stackr/models';
 import { Button, Input } from '@stackr/ui';
+import { track } from '@stackr/analytics';
 import { useWalletStore } from '@/lib/wallet-store';
 import { Header } from '@/components/header';
 
@@ -30,6 +31,8 @@ export default function AddWalletPage() {
 
     setAddressError('');
     addWallet({ label, chain, address });
+    // Coarse, PII-free signal: which chain gained a wallet — never the address.
+    track('wallet_added', { chain });
     router.push('/');
   };
 

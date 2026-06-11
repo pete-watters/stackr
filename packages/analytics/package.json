@@ -1,0 +1,35 @@
+{
+  "name": "@stackr/analytics",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@stackr/models": "workspace:*",
+    "posthog-js": "^1.375.0"
+  },
+  "devDependencies": {
+    "@stackr/tsconfig-config": "workspace:*",
+    "@stackr/eslint-config": "workspace:*",
+    "jsdom": "^28.1.0",
+    "typescript": "^5.7.3",
+    "eslint": "^9.17.0"
+  }
+}

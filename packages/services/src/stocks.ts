@@ -1,21 +1,24 @@
-import type { PriceHistoryPoint } from '@stackr/models';
+import { z } from 'zod';
+import type { PriceHistoryPoint, StockQuote, StockSearchResult } from '@stackr/models';
+import { StockQuoteSchema, StockSearchResultSchema } from '@stackr/models';
+import type { StockAdapter } from './ports.js';
+import { parseOrThrow } from './validate.js';
+
+// Re-export the domain types from their canonical home (`@stackr/models`) so
+// existing `import { StockQuote } from '@stackr/services'` call sites keep
+// working unchanged.
+export type { StockSearchResult, StockQuote } from '@stackr/models';
 
 const AV_BASE = 'https://www.alphavantage.co/query';
 
-export interface StockSearchResult {
-  symbol: string;
-  name: string;
-  type: string;
-  region: string;
-  currency: string;
-}
-
-export interface StockQuote {
-  symbol: string;
-  price: number;
-  change: number;
-  changePercent: number;
-}
+/**
+ * Ingress schema for Alpha Vantage `SYMBOL_SEARCH`. The vendor returns numbered
+ * string keys (`"1. symbol"`, `"2. name"`, …) which must not leak past this
+ * adapter — normalization below maps them to the domain `StockSearchResult`.
+ */
+const AlphaVantageSearchSchema = z.object({
+  bestMatches: z.array(z.record(z.string(), z.string())).optional(),
+});
 
 export async function searchStocks(query: string, apiKey: string): Promise<StockSearchResult[]> {
   const url = `${AV_BASE}?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(query)}&apikey=${apiKey}`;
@@ -25,19 +28,24 @@ export async function searchStocks(query: string, apiKey: string): Promise<Stock
     throw new Error(`Alpha Vantage API error: ${res.status}`);
   }
 
-  const data = await res.json();
+  const data = parseOrThrow(AlphaVantageSearchSchema, await res.json(), 'stocks.search(ingress)');
   const matches = data.bestMatches ?? [];
 
-  return matches.map(
-    (m: Record<string, string>): StockSearchResult => ({
-      symbol: m['1. symbol'] ?? '',
-      name: m['2. name'] ?? '',
-      type: m['3. type'] ?? '',
-      region: m['4. region'] ?? '',
-      currency: m['8. currency'] ?? 'USD',
-    }),
-  );
+  const normalized = matches.map(m => ({
+    symbol: m['1. symbol'] ?? '',
+    name: m['2. name'] ?? '',
+    type: m['3. type'] ?? '',
+    region: m['4. region'] ?? '',
+    currency: m['8. currency'] ?? 'USD',
+  }));
+
+  return parseOrThrow(z.array(StockSearchResultSchema), normalized, 'stocks.search(egress)');
 }
+
+/** Ingress schema for Alpha Vantage `GLOBAL_QUOTE`. */
+const AlphaVantageQuoteSchema = z.object({
+  'Global Quote': z.record(z.string(), z.string()).optional(),
+});
 
 export async function fetchStockQuote(symbol: string, apiKey: string): Promise<StockQuote> {
   const url = `${AV_BASE}?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(symbol)}&apikey=${apiKey}`;
@@ -47,15 +55,21 @@ export async function fetchStockQuote(symbol: string, apiKey: string): Promise<S
     throw new Error(`Alpha Vantage API error: ${res.status}`);
   }
 
-  const data = await res.json();
+  const data = parseOrThrow(
+    AlphaVantageQuoteSchema,
+    await res.json(),
+    'stocks.fetchQuote(ingress)',
+  );
   const quote = data['Global Quote'] ?? {};
 
-  return {
+  const normalized = {
     symbol: quote['01. symbol'] ?? symbol,
     price: parseFloat(quote['05. price'] ?? '0'),
     change: parseFloat(quote['09. change'] ?? '0'),
     changePercent: parseFloat((quote['10. change percent'] ?? '0').replace('%', '')),
   };
+
+  return parseOrThrow(StockQuoteSchema, normalized, 'stocks.fetchQuote(egress)');
 }
 
 export async function fetchStockQuotes(symbols: string[], apiKey: string): Promise<StockQuote[]> {
@@ -119,3 +133,11 @@ export async function fetchStockPriceHistory(
 
   return parseDailyCloses(series, days);
 }
+
+/** Alpha Vantage-backed implementation of the stock port. */
+export const alphaVantageStockAdapter: StockAdapter = {
+  search: searchStocks,
+  fetchQuote: fetchStockQuote,
+  fetchQuotes: fetchStockQuotes,
+  fetchPriceHistory: fetchStockPriceHistory,
+};
