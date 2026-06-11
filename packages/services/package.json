@@ -22,7 +22,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@stackr/models": "workspace:*"
+    "@stackr/models": "workspace:*",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@stackr/tsconfig-config": "workspace:*",

@@ -1,14 +1,18 @@
+import { z } from 'zod';
 import type { Balance } from '@stackr/models';
-import { chainMeta } from '@stackr/models';
+import { BalanceSchema, chainMeta } from '@stackr/models';
+import type { BalanceAdapter } from './ports.js';
+import { parseOrThrow } from './validate.js';
 
 const HIRO_API = 'https://api.hiro.so';
 
-interface HiroStxBalanceResponse {
-  balance: string;
-  total_sent: string;
-  total_received: string;
-  locked: string;
-}
+/**
+ * Ingress schema for Hiro's STX balance endpoint. The micro-STX balance is a
+ * decimal string; we only depend on `balance` here.
+ */
+const HiroStxBalanceSchema = z.object({
+  balance: z.string(),
+});
 
 export async function fetchStxBalance(address: string): Promise<Balance> {
   const res = await fetch(`${HIRO_API}/extended/v1/address/${address}/stx`);
@@ -17,24 +21,40 @@ export async function fetchStxBalance(address: string): Promise<Balance> {
     throw new Error(`Failed to fetch STX balance: ${res.status} ${res.statusText}`);
   }
 
-  const data = (await res.json()) as HiroStxBalanceResponse;
+  // Ingress boundary: validate Hiro's payload before reading the balance.
+  const data = parseOrThrow(HiroStxBalanceSchema, await res.json(), 'stx.fetchBalance(ingress)');
 
   const { decimals } = chainMeta.stx;
   const rawBalance = data.balance;
   const balance = (Number(rawBalance) / 10 ** decimals).toFixed(decimals);
 
-  return {
-    chain: 'stx',
-    address,
-    rawBalance,
-    balance,
-    updatedAt: new Date().toISOString(),
-  };
+  // Egress boundary: guarantee a valid domain `Balance` leaves the adapter.
+  return parseOrThrow(
+    BalanceSchema,
+    {
+      chain: 'stx',
+      address,
+      rawBalance,
+      balance,
+      updatedAt: new Date().toISOString(),
+    },
+    'stx.fetchBalance(egress)',
+  );
 }
 
-interface HiroBnsNamesResponse {
-  names: string[];
-}
+/** Hiro-backed implementation of the STX balance port. */
+export const stxBalanceAdapter: BalanceAdapter = {
+  chain: 'stx',
+  fetchBalance: address => fetchStxBalance(address),
+};
+
+/**
+ * Ingress schema for Hiro's BNS-names-by-address endpoint. `names` may be
+ * absent or empty for an address that owns no BNS names.
+ */
+const HiroBnsNamesSchema = z.object({
+  names: z.array(z.string()).optional(),
+});
 
 /**
  * Reverse-resolve a Stacks address to its primary BNS name (e.g. `pete.btc`).
@@ -44,6 +64,9 @@ interface HiroBnsNamesResponse {
 export async function lookupStacksBnsName(address: string): Promise<string | null> {
   const res = await fetch(`${HIRO_API}/v1/addresses/stacks/${address}`);
   if (!res.ok) return null;
-  const data = (await res.json()) as HiroBnsNamesResponse;
-  return data.names?.[0] ?? null;
+  // This lookup is best-effort UI sugar, so a malformed payload degrades to
+  // `null` rather than throwing and breaking the surrounding render.
+  const parsed = HiroBnsNamesSchema.safeParse(await res.json());
+  if (!parsed.success) return null;
+  return parsed.data.names?.[0] ?? null;
 }
