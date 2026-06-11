@@ -4,7 +4,12 @@ import { useState } from 'react';
 import { Badge, Button, Callout, Card } from '@stackr/ui';
 import { chainMeta, currencyMeta, type Chain, type Currency } from '@stackr/models';
 import { formatFiat } from '@stackr/services';
-import { selectWeightedChange24h, type WalletRef, type PortfolioStatus } from '@stackr/controllers';
+import {
+  selectWeightedChange24h,
+  type WalletRef,
+  type PortfolioStatus,
+  type WalletSourceStatus,
+} from '@stackr/controllers';
 import { Header } from '@/components/header';
 import { useWalletStore } from '@/lib/wallet-store';
 import {
@@ -23,6 +28,24 @@ const STATUS_VARIANT: Record<PortfolioStatus, 'default' | 'info' | 'success' | '
   error: 'error',
 };
 
+const SOURCE_STATUS_VARIANT: Record<WalletSourceStatus, 'default' | 'info' | 'success' | 'error'> =
+  {
+    disconnected: 'default',
+    connecting: 'info',
+    connected: 'success',
+    error: 'error',
+  };
+
+const SOURCE_LABEL: Record<string, string> = {
+  evm: 'EVM (wagmi)',
+  solana: 'Solana (wallet-adapter)',
+  stacks: 'Stacks (stacks-connect)',
+};
+
+function truncateAddress(address: string): string {
+  return address.length > 12 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address;
+}
+
 /**
  * /labs — a labelled demonstration surface for the controller/messenger spike.
  * The controllers own the state; this page only mirrors it via `useController`
@@ -38,17 +61,28 @@ export default function LabsPage() {
 }
 
 function LabsContent() {
-  const { preferences, portfolio } = useControllers();
+  const { preferences, portfolio, walletConnection } = useControllers();
   const preferencesState = useController(preferences);
   const portfolioState = useController(portfolio);
+  const walletConnectionState = useController(walletConnection);
 
   // Additive read of the existing wallet store — the controllers never mutate it.
   const wallets = useWalletStore(s => s.wallets);
   const walletRefs: WalletRef[] = wallets.map(w => ({ chain: w.chain, address: w.address }));
 
   const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [sourceError, setSourceError] = useState<string | null>(null);
 
   const weightedChange = selectWeightedChange24h(portfolioState);
+
+  async function handleSourceAction(sourceId: string, action: 'connect' | 'disconnect') {
+    setSourceError(null);
+    try {
+      await walletConnection[action](sourceId);
+    } catch (error) {
+      setSourceError(error instanceof Error ? error.message : `Could not ${action} ${sourceId}`);
+    }
+  }
 
   async function handleRefresh() {
     setRefreshError(null);
@@ -124,6 +158,63 @@ function LabsContent() {
                 </Button>
               ))}
             </div>
+          </div>
+        </Card>
+
+        {/* WalletConnectionController — one interface over the three wallet sources */}
+        <Card className="flex flex-col gap-4 p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold">WalletConnectionController</h2>
+            <Badge variant="info">WalletConnectionController:stateChange</Badge>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            One {`{ status, accounts, chains }`} entry per source. Connecting a wallet flows in
+            through the adapter and re-aggregates the portfolio below — through the messenger, with
+            no reference between the two controllers.
+          </p>
+
+          {sourceError && <Callout variant="error">{sourceError}</Callout>}
+
+          <div className="flex flex-col gap-2">
+            {Object.entries(walletConnectionState.sources).map(([sourceId, source]) => (
+              <div key={sourceId} className="flex flex-col gap-2 rounded-md border px-3 py-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{SOURCE_LABEL[sourceId] ?? sourceId}</span>
+                    <Badge variant={SOURCE_STATUS_VARIANT[source.status]}>{source.status}</Badge>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant={source.status === 'connected' ? 'outline' : 'primary'}
+                    onClick={() =>
+                      handleSourceAction(
+                        sourceId,
+                        source.status === 'connected' ? 'disconnect' : 'connect',
+                      )
+                    }
+                  >
+                    {source.status === 'connected' ? 'Disconnect' : 'Connect'}
+                  </Button>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  chains: {source.chains.join(', ')}
+                </div>
+                {source.accounts.length > 0 && (
+                  <div className="flex flex-col gap-1">
+                    {source.accounts.map(account => (
+                      <div
+                        key={`${account.chain}:${account.address}`}
+                        className="flex items-center justify-between font-mono text-xs"
+                      >
+                        <span>{chainMeta[account.chain].symbol}</span>
+                        <span>{truncateAddress(account.address)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </Card>
 
