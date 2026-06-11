@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChainSchema, chainMeta } from '@stackr/models';
 import type { Chain } from '@stackr/models';
 import { useBalance, usePrices, useTransactions } from '@stackr/queries';
+import { track } from '@stackr/analytics';
 import { formatFiat } from '@stackr/services';
 import {
   Button,
@@ -41,6 +42,12 @@ export function WalletDetailView({
   const chainResult = ChainSchema.safeParse(chainParam);
   const chain: Chain = chainResult.success ? chainResult.data : 'btc';
   const meta = chainMeta[chain];
+
+  // Coarse, PII-free event: only the chain slug is recorded, never the
+  // address being viewed.
+  useEffect(() => {
+    if (chainResult.success) track('chain_viewed', { chain });
+  }, [chainResult.success, chain]);
 
   const wallet = useWalletStore(s =>
     s.wallets.find(w => w.chain === chain && w.address === address),
