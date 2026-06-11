@@ -3,6 +3,7 @@ import type { Balance } from '@stackr/models';
 import { BalanceSchema, chainMeta } from '@stackr/models';
 import type { BalanceAdapter } from './ports.js';
 import { parseOrThrow } from './validate.js';
+import { formatBaseUnits } from './base-units.js';
 
 const HIRO_API = 'https://api.hiro.so';
 
@@ -26,7 +27,7 @@ export async function fetchStxBalance(address: string): Promise<Balance> {
 
   const { decimals } = chainMeta.stx;
   const rawBalance = data.balance;
-  const balance = (Number(rawBalance) / 10 ** decimals).toFixed(decimals);
+  const balance = formatBaseUnits(rawBalance, decimals);
 
   // Egress boundary: guarantee a valid domain `Balance` leaves the adapter.
   return parseOrThrow(
