@@ -1,6 +1,7 @@
 import { chainMeta } from '@stackr/models';
 import type { Chain, PriceHistoryPoint } from '@stackr/models';
 import type { DataPoint } from '@stackr/charts';
+import type { Tick } from '@stackr/services';
 
 export type ChartAsset =
   | { kind: 'crypto'; chain: Chain; label: string }
@@ -67,6 +68,45 @@ export function isRangeAllowed(asset: ChartAsset, range: ChartRange): boolean {
 
 export function toDataPoints(history: PriceHistoryPoint[]): DataPoint[] {
   return history.map(point => ({ x: point.timestamp, y: point.price }));
+}
+
+/**
+ * Plausible mid prices for the mock order book, per chain. Live mode replaces
+ * these with the real Kraken book, so they only need to be in the right
+ * ballpark for the mock ladder to look sensible.
+ */
+const CRYPTO_MID_PRICE: Record<Chain, number> = {
+  btc: 50_000,
+  eth: 3_000,
+  sol: 150,
+  stx: 2,
+};
+
+/**
+ * The Kraken trading pair (and mock mid price) for a crypto chain. The pair
+ * string is derived from the chain's ticker symbol so it stays in step with
+ * `chainMeta`.
+ */
+export function cryptoPair(chain: Chain): { pair: string; midPrice: number } {
+  return { pair: `${chainMeta[chain].symbol}/USD`, midPrice: CRYPTO_MID_PRICE[chain] };
+}
+
+/**
+ * Append the live tick tail to a polled history series so the chart's last
+ * point tracks real time. Only ticks newer than the final polled point are
+ * kept — the live feed extends the line, it never back-fills history. With no
+ * ticks (Mock mode, stock asset, or socket down) the history is returned
+ * unchanged.
+ */
+export function appendLiveTicks(history: DataPoint[], ticks: Tick[]): DataPoint[] {
+  if (ticks.length === 0) {
+    return history;
+  }
+  const lastX = history[history.length - 1]?.x ?? Number.NEGATIVE_INFINITY;
+  const tail = ticks
+    .filter(tick => tick.timestamp > lastX)
+    .map(tick => ({ x: tick.timestamp, y: tick.price }));
+  return tail.length > 0 ? [...history, ...tail] : history;
 }
 
 /** Axis/tooltip time label, granularity chosen to suit the selected range. */
