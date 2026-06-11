@@ -8,6 +8,7 @@ import { ChainAvatar, ItemLayout, Skeleton, Badge } from '@stackr/ui';
 import { Sparkline } from '@stackr/charts/react';
 import { useEnsName } from '@/lib/ens-queries';
 import { maskFiat } from '@/lib/mask-fiat';
+import { walletHref } from '@/lib/wallet-href';
 
 interface WalletCardProps {
   wallet: Wallet;
@@ -41,7 +42,7 @@ export function WalletCard({
 
   return (
     <Link
-      href={`/wallet/${wallet.chain}/${wallet.address}`}
+      href={walletHref(wallet.chain, wallet.address)}
       className="block rounded-lg border bg-card p-4 transition-colors hover:border-ring"
     >
       <div className="flex items-center gap-3">
