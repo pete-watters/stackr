@@ -1,10 +1,11 @@
 {
   "name": "stackr",
-  "compatibility_date": "2024-12-01",
+  "compatibility_date": "2025-08-16",
   "compatibility_flags": ["nodejs_compat"],
   "main": ".open-next/worker.js",
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
   },
+  "routes": [{ "pattern": "stackr.ie", "custom_domain": true }],
 }
