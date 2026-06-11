@@ -1,11 +1,12 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChainSchema, chainMeta } from '@stackr/models';
 import type { Chain } from '@stackr/models';
 import { useBalance, usePrices, useTransactions } from '@stackr/queries';
+import { track } from '@stackr/analytics';
 import { formatFiat } from '@stackr/services';
 import {
   Button,
@@ -58,6 +59,12 @@ export default function WalletDetailPage({
 
   const [editLabel, setEditLabel] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Coarse, PII-free signal: which chain's detail view was opened — never the
+  // address being viewed.
+  useEffect(() => {
+    if (chainResult.success) track('chain_viewed', { chain });
+  }, [chainResult.success, chain]);
 
   if (!chainResult.success) {
     return (
