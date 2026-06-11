@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ChainSchema } from './chain.js';
 import { CurrencySchema } from './currency.js';
 
 export const CashHoldingSchema = z.object({
@@ -25,6 +26,23 @@ export const StockHoldingSchema = z.object({
 
 export type StockHolding = z.infer<typeof StockHoldingSchema>;
 
-export const HoldingSchema = z.discriminatedUnion('type', [CashHoldingSchema, StockHoldingSchema]);
+export const CryptoHoldingSchema = z.object({
+  id: z.string().uuid(),
+  type: z.literal('crypto'),
+  chain: ChainSchema,
+  // Manual positions are off-chain balances (exchange, paper, a partner's stack),
+  // so a holding only makes sense with a strictly positive size.
+  quantity: z.number().positive(),
+  label: z.string().optional(),
+  createdAt: z.string().datetime(),
+});
+
+export type CryptoHolding = z.infer<typeof CryptoHoldingSchema>;
+
+export const HoldingSchema = z.discriminatedUnion('type', [
+  CashHoldingSchema,
+  StockHoldingSchema,
+  CryptoHoldingSchema,
+]);
 
 export type Holding = z.infer<typeof HoldingSchema>;
