@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CurrencySchema, currencyMeta } from '@stackr/models';
-import type { Currency } from '@stackr/models';
+import { CurrencySchema, currencyMeta, ChainSchema, chainMeta } from '@stackr/models';
+import type { Currency, Chain } from '@stackr/models';
 import { useStockSearch } from '@stackr/queries';
 import { Button, Input, Card, Tabs, TabsList, TabsTrigger, TabsContent } from '@stackr/ui';
 import { useHoldingsStore } from '@/lib/holdings-store';
@@ -11,11 +11,13 @@ import { useSettingsStore } from '@/lib/settings-store';
 import { Header } from '@/components/header';
 
 const currencies = CurrencySchema.options;
+const chains = ChainSchema.options;
 
 export default function AddHoldingPage() {
   const router = useRouter();
   const addCashHolding = useHoldingsStore(s => s.addCashHolding);
   const addStockHolding = useHoldingsStore(s => s.addStockHolding);
+  const addCryptoHolding = useHoldingsStore(s => s.addCryptoHolding);
   const alphaVantageApiKey = useSettingsStore(s => s.alphaVantageApiKey);
 
   // Cash form state
@@ -29,6 +31,11 @@ export default function AddHoldingPage() {
   const [selectedStock, setSelectedStock] = useState<{ symbol: string; name: string } | null>(null);
   const [shares, setShares] = useState('');
   const [costBasis, setCostBasis] = useState('');
+
+  // Crypto form state
+  const [cryptoChain, setCryptoChain] = useState<Chain>('btc');
+  const [cryptoQuantity, setCryptoQuantity] = useState('');
+  const [cryptoLabel, setCryptoLabel] = useState('');
 
   const { data: searchResults } = useStockSearch(stockQuery, alphaVantageApiKey);
 
@@ -56,6 +63,18 @@ export default function AddHoldingPage() {
     router.push('/holdings');
   };
 
+  const handleCryptoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const quantity = parseFloat(cryptoQuantity);
+    if (!(quantity > 0)) return;
+    addCryptoHolding({
+      chain: cryptoChain,
+      quantity,
+      label: cryptoLabel.trim() || undefined,
+    });
+    router.push('/holdings');
+  };
+
   return (
     <>
       <Header />
@@ -69,6 +88,9 @@ export default function AddHoldingPage() {
             </TabsTrigger>
             <TabsTrigger value="stock" className="flex-1">
               Stock
+            </TabsTrigger>
+            <TabsTrigger value="crypto" className="flex-1">
+              Crypto
             </TabsTrigger>
           </TabsList>
 
@@ -203,6 +225,52 @@ export default function AddHoldingPage() {
                   </Button>
                 </form>
               )}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="crypto">
+            <Card className="p-4 mt-4">
+              <form onSubmit={handleCryptoSubmit} className="flex flex-col gap-4">
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="crypto-chain"
+                    className="text-sm font-medium text-muted-foreground"
+                  >
+                    Chain
+                  </label>
+                  <select
+                    id="crypto-chain"
+                    value={cryptoChain}
+                    onChange={e => setCryptoChain(ChainSchema.parse(e.target.value))}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    {chains.map(c => (
+                      <option key={c} value={c}>
+                        {chainMeta[c].name} ({chainMeta[c].symbol})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Input
+                  label="Quantity"
+                  type="number"
+                  step="any"
+                  min="0"
+                  value={cryptoQuantity}
+                  onChange={e => setCryptoQuantity(e.target.value)}
+                  placeholder={`0.00 ${chainMeta[cryptoChain].symbol}`}
+                  required
+                />
+                <Input
+                  label="Label (optional)"
+                  value={cryptoLabel}
+                  onChange={e => setCryptoLabel(e.target.value)}
+                  placeholder="e.g. Kraken balance"
+                />
+                <Button type="submit" className="mt-2" disabled={!(parseFloat(cryptoQuantity) > 0)}>
+                  Add Crypto Holding
+                </Button>
+              </form>
             </Card>
           </TabsContent>
         </Tabs>
