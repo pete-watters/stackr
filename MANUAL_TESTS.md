@@ -111,14 +111,11 @@ Scenario: All three wallets coexist
   And the portfolio shows Ethereum, Solana, Stacks, and Bitcoin holdings together
   And the total portfolio value is the sum of all connected holdings
 
-Scenario: Per-chain status is visible in the header  [PENDING — issue #21]
+Scenario: Per-chain status is visible in the header
   Given one or more wallets are connected
   Then the header shows a lit status indicator for each connected chain
-  And an unlit indicator for chains that are not connected
+  And an unlit (dimmed) indicator for chains that are not connected
 ```
-
-> The per-chain header status indicators land with the unified connect modal
-> (issue #21). Until then, each wallet has its own button in the header.
 
 ## Feature: Watch-only and connected address de-duplication
 
@@ -158,13 +155,9 @@ Scenario: Switching currency updates all values
   Then every fiat value re-renders in EUR
   And the choice persists across a page refresh
 
-Scenario: Hide-balance mode masks values  [PENDING — not yet built]
+Scenario: Hide-balance mode masks values
   Given holdings are displayed
-  When I enable hide-balance mode
-  Then all fiat values are replaced with a mask (e.g. ••••)
+  When I toggle hide-balance mode from the header (the eye icon)
+  Then all fiat values are replaced with a mask (••••)
   And toggling it off restores the real values
 ```
-
-> Hide-balance mode is a planned privacy feature (useful for screenshots and
-> screen-sharing) and is not implemented yet — listed here so the scenario is
-> ready when it is built.
