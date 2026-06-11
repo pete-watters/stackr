@@ -59,6 +59,9 @@ importers:
       '@solana/web3.js':
         specifier: ^1.98.4
         version: 1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
+      '@stackr/analytics':
+        specifier: workspace:*
+        version: link:../../packages/analytics
       '@stackr/charts':
         specifier: workspace:*
         version: link:../../packages/charts
@@ -92,9 +95,6 @@ importers:
       next-themes:
         specifier: ^0.4.4
         version: 0.4.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      posthog-js:
-        specifier: ^1.375.0
-        version: 1.375.0
       react:
         specifier: ^19.0.0
         version: 19.2.4
@@ -165,6 +165,31 @@ importers:
       wrangler:
         specifier: ^4.93.1
         version: 4.93.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+
+  packages/analytics:
+    dependencies:
+      '@stackr/models':
+        specifier: workspace:*
+        version: link:../models
+      posthog-js:
+        specifier: ^1.375.0
+        version: 1.375.0
+    devDependencies:
+      '@stackr/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@stackr/tsconfig-config':
+        specifier: workspace:*
+        version: link:../tsconfig-config
+      eslint:
+        specifier: ^9.17.0
+        version: 9.39.3(jiti@2.6.1)
+      jsdom:
+        specifier: ^28.1.0
+        version: 28.1.0(@noble/hashes@1.8.0)
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
 
   packages/charts:
     devDependencies:
@@ -8420,10 +8445,6 @@ packages:
 
   undici-types@7.25.0:
     resolution: {integrity: sha512-AXNgS1Byr27fTI+2bsPEkV9CxkT8H6xNyRI68b3TatlZo3RkzlqQBLL+w7SmGPVpokjHbcuNVQUWE7FRTg+LRA==}
-
-  undici@7.22.0:
-    resolution: {integrity: sha512-RqslV2Us5BrllB+JeiZnK4peryVTndy9Dnqq62S3yYRRTj0tFQCwEniUy2167skdGOy3vqRzEvl1Dm4sV2ReDg==}
-    engines: {node: '>=20.18.1'}
 
   undici@7.24.8:
     resolution: {integrity: sha512-6KQ/+QxK49Z/p3HO6E5ZCZWNnCasyZLa5ExaVYyvPxUwKtbCPMKELJOqh7EqOle0t9cH/7d2TaaTRRa6Nhs4YQ==}
@@ -17896,7 +17917,7 @@ snapshots:
       saxes: 6.0.0
       symbol-tree: 3.2.4
       tough-cookie: 6.0.0
-      undici: 7.22.0
+      undici: 7.24.8
       w3c-xmlserializer: 5.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
@@ -20046,8 +20067,6 @@ snapshots:
   undici-types@6.21.0: {}
 
   undici-types@7.25.0: {}
-
-  undici@7.22.0: {}
 
   undici@7.24.8: {}
 
