@@ -62,6 +62,9 @@ importers:
       '@stackr/charts':
         specifier: workspace:*
         version: link:../../packages/charts
+      '@stackr/controllers':
+        specifier: workspace:*
+        version: link:../../packages/controllers
       '@stackr/models':
         specifier: workspace:*
         version: link:../../packages/models
