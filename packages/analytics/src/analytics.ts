@@ -49,6 +49,9 @@ export function initAnalytics(): void {
     disable_session_recording: true,
     respect_dnt: true,
     person_profiles: 'identified_only',
+    // Error tracking: capture unhandled exceptions only (code-level stack
+    // traces, never form/user data). Gated behind the same key + DNT checks.
+    capture_exceptions: true,
     // Belt-and-braces: if replay is ever enabled at the project level, every
     // input value and text node is masked so nothing legible is recorded.
     session_recording: {
