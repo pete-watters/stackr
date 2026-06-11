@@ -10,10 +10,15 @@ import {
   type ReactNode,
 } from 'react';
 import {
+  ActivityController,
   Messenger,
   PortfolioController,
   PreferencesController,
   WalletConnectionController,
+  type ActivityControllerActions,
+  type ActivityControllerEvents,
+  type ActivityControllerMessenger,
+  type ActivityControllerState,
   type PortfolioControllerActions,
   type PortfolioControllerEvents,
   type PortfolioControllerMessenger,
@@ -46,8 +51,14 @@ import { createStacksWalletAdapter } from '@/lib/wallet-adapters/stacks-wallet-a
  */
 
 type RootMessenger = Messenger<
-  PreferencesControllerActions | PortfolioControllerActions | WalletConnectionControllerActions,
-  PreferencesControllerEvents | PortfolioControllerEvents | WalletConnectionControllerEvents
+  | PreferencesControllerActions
+  | PortfolioControllerActions
+  | WalletConnectionControllerActions
+  | ActivityControllerActions,
+  | PreferencesControllerEvents
+  | PortfolioControllerEvents
+  | WalletConnectionControllerEvents
+  | ActivityControllerEvents
 >;
 
 interface Controllers {
@@ -55,6 +66,7 @@ interface Controllers {
   preferences: PreferencesController;
   portfolio: PortfolioController;
   walletConnection: WalletConnectionController;
+  activity: ActivityController;
 }
 
 const ControllerContext = createContext<Controllers | null>(null);
@@ -81,7 +93,13 @@ export function ControllerProvider({ children }: { children: ReactNode }) {
         createStacksWalletAdapter(),
       ],
     });
-    return { messenger, preferences, portfolio, walletConnection };
+    // The activity feed subscribes to WalletConnectionController:stateChange on
+    // this same messenger, so connecting a wallet in the demo re-runs the feed —
+    // through the messenger, with no reference between the two controllers.
+    const activity = new ActivityController({
+      messenger: messenger.getRestricted<ActivityControllerMessenger>(),
+    });
+    return { messenger, preferences, portfolio, walletConnection, activity };
   });
 
   // Capture connections already live on mount, and tear the adapter
@@ -114,9 +132,18 @@ export function useController(controller: PortfolioController): PortfolioControl
 export function useController(
   controller: WalletConnectionController,
 ): WalletConnectionControllerState;
+export function useController(controller: ActivityController): ActivityControllerState;
 export function useController(
-  controller: PreferencesController | PortfolioController | WalletConnectionController,
-): PreferencesControllerState | PortfolioControllerState | WalletConnectionControllerState {
+  controller:
+    | PreferencesController
+    | PortfolioController
+    | WalletConnectionController
+    | ActivityController,
+):
+  | PreferencesControllerState
+  | PortfolioControllerState
+  | WalletConnectionControllerState
+  | ActivityControllerState {
   const { messenger } = useControllers();
 
   const subscribe = useCallback(
