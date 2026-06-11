@@ -14,9 +14,11 @@ export { TransactionSchema, type Transaction } from './transaction.js';
 export {
   CashHoldingSchema,
   StockHoldingSchema,
+  CryptoHoldingSchema,
   HoldingSchema,
   type CashHolding,
   type StockHolding,
+  type CryptoHolding,
   type Holding,
 } from './holding.js';
 export {
