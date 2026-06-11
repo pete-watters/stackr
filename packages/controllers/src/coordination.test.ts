@@ -14,6 +14,14 @@ import {
   type PortfolioControllerMessenger,
   type WalletRef,
 } from './PortfolioController.js';
+import {
+  WalletConnectionController,
+  type WalletAccount,
+  type WalletConnectionControllerActions,
+  type WalletConnectionControllerEvents,
+  type WalletConnectionControllerMessenger,
+  type WalletSourceAdapter,
+} from './WalletConnectionController.js';
 
 /**
  * The point of the whole spike: two controllers coordinating through the
@@ -21,8 +29,14 @@ import {
  * in PreferencesController re-values the PortfolioController.
  */
 
-type RootActions = PreferencesControllerActions | PortfolioControllerActions;
-type RootEvents = PreferencesControllerEvents | PortfolioControllerEvents;
+type RootActions =
+  | PreferencesControllerActions
+  | PortfolioControllerActions
+  | WalletConnectionControllerActions;
+type RootEvents =
+  | PreferencesControllerEvents
+  | PortfolioControllerEvents
+  | WalletConnectionControllerEvents;
 
 const RATES: Record<Currency, number> = {
   usd: 1,
@@ -121,5 +135,118 @@ describe('PreferencesController → PortfolioController coordination', () => {
 
     expect(portfolio.state.status).toBe('ready');
     expect(portfolio.state.totalValue).toBe(400);
+  });
+});
+
+/**
+ * A controllable in-memory wallet source, identical in spirit to the one in
+ * `WalletConnectionController.test.ts` — no DOM, no vendor SDK.
+ */
+function createMockAdapter(id: string): WalletSourceAdapter & {
+  emit: (accounts: WalletAccount[]) => void;
+} {
+  let accounts: WalletAccount[] = [];
+  let listener: ((accounts: WalletAccount[]) => void) | null = null;
+  return {
+    id,
+    chains: ['btc', 'eth'],
+    connect: async () => undefined,
+    disconnect: async () => undefined,
+    getAccounts: () => accounts,
+    onAccountsChanged: callback => {
+      listener = callback;
+      return () => {
+        listener = null;
+      };
+    },
+    emit: next => {
+      accounts = next;
+      listener?.(next);
+    },
+  };
+}
+
+describe('WalletConnectionController → PortfolioController coordination', () => {
+  function setupConnected() {
+    const messenger = new Messenger<RootActions, RootEvents>();
+    new PreferencesController({
+      messenger: messenger.getRestricted<PreferencesControllerMessenger>(),
+    });
+    const fetchBalance = vi.fn(
+      async (chain: Chain, address: string): Promise<Balance> => ({
+        chain,
+        address,
+        rawBalance: BALANCES[address] ?? '0',
+        balance: BALANCES[address] ?? '0',
+        updatedAt: new Date().toISOString(),
+      }),
+    );
+    const fetchPrices = vi.fn(
+      async (chains: Chain[], currency: Currency): Promise<Price[]> =>
+        chains.map(chain => ({
+          chain,
+          usdPrice: USD_PRICE[chain],
+          fiatPrice: USD_PRICE[chain] * RATES[currency],
+          currency,
+          change24h: 0,
+          updatedAt: new Date().toISOString(),
+        })),
+    );
+    const portfolio = new PortfolioController({
+      messenger: messenger.getRestricted<PortfolioControllerMessenger>(),
+      fetchBalance,
+      fetchPrices,
+    });
+    const adapter = createMockAdapter('evm');
+    const walletConnection = new WalletConnectionController({
+      messenger: messenger.getRestricted<WalletConnectionControllerMessenger>(),
+      adapters: [adapter],
+    });
+    return { portfolio, walletConnection, adapter, fetchBalance };
+  }
+
+  it('re-aggregates the portfolio when a wallet source reports new accounts', async () => {
+    const { portfolio, adapter } = setupConnected();
+
+    // A wallet connects itself — the portfolio reacts with no reference between
+    // the two controllers, only the messenger.
+    adapter.emit([
+      { chain: 'btc', address: 'a' },
+      { chain: 'eth', address: 'b' },
+    ]);
+    await portfolio.refreshing;
+
+    expect(portfolio.state.status).toBe('ready');
+    // usd: 2*100 + 4*50 = 400
+    expect(portfolio.state.totalValue).toBe(400);
+  });
+
+  it('does not re-aggregate on a status-only change', async () => {
+    const { portfolio, walletConnection, adapter, fetchBalance } = setupConnected();
+
+    adapter.emit([{ chain: 'btc', address: 'a' }]);
+    await portfolio.refreshing;
+    fetchBalance.mockClear();
+
+    // A connect() call flips status disconnected → connecting → connected, but
+    // the account set is unchanged, so the portfolio must not refetch.
+    await walletConnection.connect('evm');
+    await portfolio.refreshing;
+
+    expect(fetchBalance).not.toHaveBeenCalled();
+  });
+
+  it('clears the portfolio when the last source disconnects', async () => {
+    const { portfolio, adapter } = setupConnected();
+
+    adapter.emit([{ chain: 'btc', address: 'a' }]);
+    await portfolio.refreshing;
+    // 2 BTC * $100 = $200
+    expect(portfolio.state.totalValue).toBe(200);
+
+    adapter.emit([]);
+    await portfolio.refreshing;
+    expect(portfolio.state.holdings).toEqual([]);
+    expect(portfolio.state.totalValue).toBe(0);
   });
 });
