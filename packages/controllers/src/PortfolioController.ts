@@ -14,6 +14,11 @@ import type {
   PreferencesControllerGetStateAction,
   PreferencesControllerStateChangeEvent,
 } from './PreferencesController.js';
+import {
+  selectConnectedAccounts,
+  type WalletConnectionControllerState,
+  type WalletConnectionControllerStateChangeEvent,
+} from './WalletConnectionController.js';
 import { selectTotalValue } from './selectors.js';
 
 /**
@@ -128,7 +133,9 @@ export type PortfolioControllerEvents = PortfolioControllerStateChangeEvent;
 
 /** Actions/events this controller is allowed to reach on the shared messenger. */
 type AllowedActions = PreferencesControllerGetStateAction;
-type AllowedEvents = PreferencesControllerStateChangeEvent;
+type AllowedEvents =
+  | PreferencesControllerStateChangeEvent
+  | WalletConnectionControllerStateChangeEvent;
 
 /**
  * The messenger this controller is handed. It can speak its own actions/events
@@ -150,6 +157,13 @@ export class PortfolioController extends BaseController<
 
   /** The addresses of the last refresh, replayed when the currency changes. */
   #lastWallets: WalletRef[] = [];
+
+  /**
+   * A stable key for the last connected-account set we refreshed on. A wallet
+   * connection's `:stateChange` fires for status transitions too (e.g.
+   * `connecting`), so we only re-refresh when the *accounts* actually move.
+   */
+  #lastConnectedKey = '';
 
   /** The most recent refresh promise, so callers/UI can await in-flight work. */
   #refreshing: Promise<void> = Promise.resolve();
@@ -194,6 +208,17 @@ export class PortfolioController extends BaseController<
       'PreferencesController:stateChange',
       this.#onIncludedChainsChange.bind(this),
       preferences => preferences.includedChains,
+    );
+
+    // React to wallet connections through the messenger, with no reference to
+    // WalletConnectionController — the same decoupling as the preferences wiring
+    // above. When the connected account set changes, re-aggregate the portfolio.
+    // This is what a real PortfolioController does with `AccountsController`; ADR
+    // 0013 noted `refresh(wallets)` took its addresses by argument precisely
+    // because that upstream controller did not exist yet. Now it does.
+    this.messagingSystem.subscribe(
+      'WalletConnectionController:stateChange',
+      this.#onConnectedAccountsChange.bind(this),
     );
   }
 
@@ -292,5 +317,29 @@ export class PortfolioController extends BaseController<
       state.includedChains = includedChains;
       state.totalValue = totalValue;
     });
+  }
+
+  /**
+   * Connected accounts changed → re-aggregate. We flatten the connection state
+   * into `WalletRef`s and refresh, but only when the set actually differs from
+   * the last one we refreshed on — a `connecting`/`error` status flip leaves the
+   * account set untouched and must not trigger a refetch. (The preference
+   * subscriptions get this debounce for free via the messenger's selector; this
+   * one has no single slice to select, so we compare a derived key.)
+   */
+  #onConnectedAccountsChange(walletConnection: WalletConnectionControllerState): void {
+    const wallets: WalletRef[] = selectConnectedAccounts(walletConnection).map(account => ({
+      chain: account.chain,
+      address: account.address,
+    }));
+    const key = wallets
+      .map(wallet => `${wallet.chain}:${wallet.address}`)
+      .sort()
+      .join('|');
+    if (key === this.#lastConnectedKey) {
+      return;
+    }
+    this.#lastConnectedKey = key;
+    void this.refresh(wallets);
   }
 }
