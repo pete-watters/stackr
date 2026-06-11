@@ -12,6 +12,14 @@ export {
 export { OrderSchema, OrderBookSchema, type Order, type OrderBook } from './orderbook.js';
 export { TransactionSchema, type Transaction } from './transaction.js';
 export {
+  ProtocolSchema,
+  HealthPositionNativeSchema,
+  HealthPositionSchema,
+  type Protocol,
+  type HealthPositionNative,
+  type HealthPosition,
+} from './health.js';
+export {
   CashHoldingSchema,
   StockHoldingSchema,
   CryptoHoldingSchema,
