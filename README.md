@@ -7,7 +7,7 @@ view — connected wallets, watch-only addresses, and stablecoin positions
 unified with live prices, depth-aware charts, and a trading-terminal aesthetic
 built for people who actually use crypto.
 
-🌐 **Live:** [stackr.ie](https://stackr.ie) _(coming soon)_
+🌐 **Live:** [stackr.ie](https://stackr.ie)
 
 ---
 
@@ -23,7 +23,7 @@ ETH, ERC-20s, SOL, SPL tokens, BTC, STX, Stacks fungibles, BNS names, ENS
 names, stacking positions, FIAT-pegged stablecoins. Or add watch-only
 addresses (cold storage, a partner's stack, a trading wallet) with custom
 labels and groups. Everything is computed client-side from public chain RPCs;
-no account, no database, no tracking pixels.
+no account, no database, no custody.
 
 ## Features
 
@@ -36,11 +36,11 @@ no account, no database, no tracking pixels.
 - **ENS / `.sol` / `.btc` resolution** — names where addresses would normally
   blur into noise.
 - **EUR + USD** — because Dublin.
-- **No accounts, no analytics, no PII** — watch-only addresses live in
-  `localStorage`. Connected wallets are auth + address-discovery only;
+- **No accounts, no custody, watch-only by default** — watch-only addresses
+  live in `localStorage`. Connected wallets are auth + address-discovery only;
   stackr never signs transactions.
-- **Mobile-first** — designed for 375px and up; native iOS + Android builds
-  via Capacitor.
+- **Mobile-first** — designed for 375px and up; native iOS + Android wrappers
+  via Capacitor are planned.
 
 ## Tech
 

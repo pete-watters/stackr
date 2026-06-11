@@ -43,6 +43,7 @@ where possible.
 | `NEXT_PUBLIC_ALCHEMY_API_KEY` | Higher-rate Ethereum RPC + ERC-20 token metadata |
 | `NEXT_PUBLIC_HELIUS_API_KEY`  | Higher-rate Solana RPC + SPL token metadata      |
 | (user-entered in Settings)    | Etherscan API key for richer ETH balance data    |
+| (user-entered in Settings)    | Alpha Vantage API key for stock prices + charts  |
 
 Copy `.env.local` from any existing example or just create one — never
 commit it.
@@ -67,9 +68,9 @@ docs/
 
 ## CI
 
-GitHub Actions runs lint → typecheck → test → build → Playwright on every PR
-to `main`. Deploys auto-trigger on push to `main` via Cloudflare Workers
-(`@opennextjs/cloudflare`).
+GitHub Actions runs lint → typecheck → test → build → Playwright on every pull
+request (and on push to `main`). Deploys auto-trigger on push to `main` via
+Cloudflare Workers (`@opennextjs/cloudflare`).
 
 ## Conventions
 
