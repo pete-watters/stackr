@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@stackr/models": "workspace:*",
+    "viem": "^2.21.54",
     "zod": "^3.24.1"
   },
   "devDependencies": {

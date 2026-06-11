@@ -15,6 +15,7 @@ import { WalletCard } from '@/components/wallet-card';
 import { PortfolioSummary } from '@/components/portfolio-summary';
 import { PortfolioBreakdown } from '@/components/portfolio-breakdown';
 import { RecentActivity } from '@/components/recent-activity';
+import { LiquidationHealth } from '@/components/liquidation-health';
 
 export default function DashboardPage() {
   const wallets = useWalletStore(s => s.wallets);
@@ -41,6 +42,9 @@ export default function DashboardPage() {
 
   const allWallets = [...wallets, ...connectedWallets];
   const connectedAddressSet = new Set((connectedAddresses.eth ?? []).map(a => a.toLowerCase()));
+
+  // EVM addresses (watched + connected) feed the liquidation-health adapters.
+  const evmAddresses = [...new Set(allWallets.filter(w => w.chain === 'eth').map(w => w.address))];
 
   const balanceQueries = useBalances(allWallets, {
     ethApiKey: etherscanApiKey || undefined,
@@ -185,6 +189,10 @@ export default function DashboardPage() {
                 />
               ))}
             </div>
+
+            {evmAddresses.length > 0 && (
+              <LiquidationHealth addresses={evmAddresses} hideBalance={hideBalance} />
+            )}
 
             <RecentActivity wallets={allWallets} />
           </>
