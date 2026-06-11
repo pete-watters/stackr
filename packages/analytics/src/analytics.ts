@@ -1,4 +1,5 @@
 import posthog from 'posthog-js';
+import { sanitizePathname } from './path-privacy.js';
 
 import type { AnalyticsEventMap, AnalyticsEventName } from './events.js';
 
@@ -81,5 +82,7 @@ export function track<E extends AnalyticsEventName>(event: E, props: AnalyticsEv
  */
 export function capturePageview(pathname: string): void {
   if (!isEnabled()) return;
-  posthog.capture('$pageview', { $current_url: window.location.origin + pathname });
+  posthog.capture('$pageview', {
+    $current_url: window.location.origin + sanitizePathname(pathname),
+  });
 }
