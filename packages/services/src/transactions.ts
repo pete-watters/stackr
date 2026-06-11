@@ -3,6 +3,7 @@ import type { Chain, Transaction } from '@stackr/models';
 import { TransactionSchema } from '@stackr/models';
 import type { TransactionAdapter } from './ports.js';
 import { parseOrThrow } from './validate.js';
+import { formatBaseUnits } from './base-units.js';
 
 const TransactionListSchema = z.array(TransactionSchema);
 
@@ -72,7 +73,7 @@ export function normalizeBtcTransactions(txs: BlockstreamTx[], address: string):
       hash: tx.txid,
       chain: 'btc' as const,
       type: isReceive ? ('receive' as const) : ('send' as const),
-      amount: (amount / 1e8).toFixed(8),
+      amount: formatBaseUnits(amount, 8),
       counterparty,
       timestamp: tx.status?.block_time
         ? new Date(tx.status.block_time * 1000).toISOString()
@@ -130,7 +131,7 @@ export function normalizeEthTransactions(txs: EtherscanTx[], address: string): T
       hash: tx.hash,
       chain: 'eth' as const,
       type: isReceive ? ('receive' as const) : ('send' as const),
-      amount: (parseInt(tx.value ?? '0') / 1e18).toFixed(8),
+      amount: formatBaseUnits(tx.value ?? '0', 18, 8),
       counterparty: (isReceive ? tx.from : tx.to) ?? 'unknown',
       timestamp: new Date(parseInt(tx.timeStamp ?? '0') * 1000).toISOString(),
       confirmed: tx.txreceipt_status === '1',
@@ -195,7 +196,7 @@ export function normalizeStxTransactions(txs: HiroTx[], address: string): Transa
         hash: tx.tx_id,
         chain: 'stx' as const,
         type: isReceive ? ('receive' as const) : ('send' as const),
-        amount: (parseInt(tx.token_transfer?.amount ?? '0') / 1e6).toFixed(6),
+        amount: formatBaseUnits(tx.token_transfer?.amount ?? '0', 6),
         counterparty: isReceive
           ? (tx.sender_address ?? 'unknown')
           : (tx.token_transfer?.recipient_address ?? 'unknown'),
