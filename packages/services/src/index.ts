@@ -32,8 +32,13 @@ export {
   serializeOrderBook,
   generateMockOrderBook,
   createKrakenOrderBookWs,
+  createBookState,
+  applyBookFrame,
+  bookStateToLadders,
   orderBookAdapter,
   type KrakenWebSocketMessage,
+  type KrakenBookLevel,
+  type BookState,
 } from './orderbook.js';
 export {
   fetchTransactions,
