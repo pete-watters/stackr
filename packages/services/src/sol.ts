@@ -3,6 +3,7 @@ import type { Balance } from '@stackr/models';
 import { BalanceSchema, chainMeta } from '@stackr/models';
 import type { BalanceAdapter } from './ports.js';
 import { parseOrThrow } from './validate.js';
+import { formatBaseUnits } from './base-units.js';
 
 const SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
 
@@ -37,7 +38,7 @@ export async function fetchSolBalance(address: string): Promise<Balance> {
 
   const lamports = data.result.value;
   const { decimals } = chainMeta.sol;
-  const balance = (lamports / 10 ** decimals).toFixed(decimals);
+  const balance = formatBaseUnits(lamports, decimals);
 
   // Egress boundary: guarantee a valid domain `Balance` leaves the adapter.
   return parseOrThrow(
