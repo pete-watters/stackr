@@ -12,6 +12,7 @@ export default defineConfig({
       // (packages/ui), React components, and Next.js pages are covered by
       // Playwright E2E instead, so they are not counted here.
       include: [
+        'packages/analytics/src/**',
         'packages/models/src/**',
         'packages/services/src/**',
         'packages/charts/src/**',

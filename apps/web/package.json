@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:mobile": "NEXT_PUBLIC_TARGET=capacitor next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
@@ -24,7 +25,9 @@
     "@solana/wallet-adapter-react": "^0.15.39",
     "@solana/wallet-adapter-react-ui": "^0.9.39",
     "@solana/web3.js": "^1.98.4",
+    "@stackr/analytics": "workspace:*",
     "@stackr/charts": "workspace:*",
+    "@stackr/controllers": "workspace:*",
     "@stackr/models": "workspace:*",
     "@stackr/queries": "workspace:*",
     "@stackr/services": "workspace:*",
@@ -43,6 +46,10 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4",
+    "@capacitor/ios": "^8.3.4",
     "@opennextjs/cloudflare": "^1.19.11",
     "@playwright/test": "^1.49.1",
     "@stackr/eslint-config": "workspace:*",
