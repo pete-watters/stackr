@@ -1,5 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+
+// The provider now constructs the Stacks wallet source, which imports
+// `@stacks/connect` — a stencil bundle that throws on import under jsdom. Stub
+// the ACL module so the demo wiring loads without the real SDK; this test only
+// exercises the PreferencesController surface.
+vi.mock('@/lib/stacks-connect', () => ({
+  connectStacksWallet: vi.fn(),
+  disconnectStacksWallet: vi.fn(),
+  isStacksWalletConnected: vi.fn(() => false),
+  readStacksAddresses: vi.fn(() => null),
+}));
+
 import { ControllerProvider, useController, useControllers } from './controller-provider';
 
 // A tiny consumer that mirrors PreferencesController state and drives it — the
