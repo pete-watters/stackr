@@ -13,16 +13,16 @@ async function mockCoinGecko(page: import('@playwright/test').Page) {
   );
 }
 
-test('charts page is reachable from the nav', async ({ page }) => {
+test('markets page is reachable from the nav', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('link', { name: 'Charts' }).click();
-  await expect(page).toHaveURL(/\/charts/);
-  await expect(page.getByRole('heading', { name: 'Charts' })).toBeVisible();
+  await page.getByRole('link', { name: 'Markets' }).click();
+  await expect(page).toHaveURL(/\/market/);
+  await expect(page.getByRole('heading', { name: 'Markets' })).toBeVisible();
 });
 
 test('renders a price chart for the default asset with range controls', async ({ page }) => {
   await mockCoinGecko(page);
-  await page.goto('/charts');
+  await page.goto('/market');
 
   await expect(page.getByRole('button', { name: '24H' })).toBeVisible();
   await expect(page.getByRole('button', { name: '7D' })).toBeVisible();
@@ -33,8 +33,25 @@ test('renders a price chart for the default asset with range controls', async ({
 
 test('switching the time range keeps the chart visible', async ({ page }) => {
   await mockCoinGecko(page);
-  await page.goto('/charts');
+  await page.goto('/market');
 
   await page.getByRole('button', { name: '30D' }).click();
   await expect(page.getByTestId('price-chart').locator('svg')).toBeVisible();
+});
+
+test('shows the order book and depth chart alongside the price chart', async ({ page }) => {
+  await mockCoinGecko(page);
+  await page.goto('/market');
+
+  // Mock mode renders the book without any network, for the default BTC pair.
+  await expect(page.getByText('Order Book — BTC/USD')).toBeVisible();
+  await expect(page.getByText('Depth Chart —')).toBeVisible();
+});
+
+test('legacy /charts route redirects to the combined markets page', async ({ page }) => {
+  await mockCoinGecko(page);
+  await page.goto('/charts');
+
+  await expect(page).toHaveURL(/\/market/);
+  await expect(page.getByRole('heading', { name: 'Markets' })).toBeVisible();
 });
