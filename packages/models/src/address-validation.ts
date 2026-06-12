@@ -23,6 +23,11 @@ const patterns: Record<Chain, { regex: RegExp; description: string }> = {
     regex: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
     description: 'SOL address must be 32-44 base58 characters',
   },
+  sui: {
+    // A Sui address is a 32-byte value, rendered as 0x + 64 hex characters.
+    regex: /^0x[0-9a-fA-F]{64}$/,
+    description: 'SUI address must start with 0x followed by 64 hex characters',
+  },
 };
 
 export function validateAddress(chain: Chain, address: string): ValidationResult {
