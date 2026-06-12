@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChainSchema, chainMeta } from '@stackr/models';
 import type { Chain } from '@stackr/models';
-import { useBalance, usePrices, useTransactions } from '@stackr/queries';
+import { useBalance, usePrices } from '@stackr/queries';
+import { selectActivityByWallet } from '@stackr/controllers';
 import { track } from '@stackr/analytics';
 import { formatFiat } from '@stackr/services';
 import {
@@ -26,6 +27,7 @@ import { useWalletStore } from '@/lib/wallet-store';
 import { useSettingsStore } from '@/lib/settings-store';
 import { Header } from '@/components/header';
 import { TransactionList } from '@/components/transaction-list';
+import { useActivityState, useTrackWallet } from '@/lib/controllers/activity-controller-provider';
 
 // Shared wallet-detail UI, rendered both by the server route
 // `/wallet/[chain]/[address]` (web) and the static query-param route
@@ -66,7 +68,22 @@ export function WalletDetailView({
   const { data: prices } = usePrices([chain], currency);
   const price = prices?.[0];
   const fiatValue = balance && price ? parseFloat(balance.balance) * price.fiatPrice : undefined;
-  const { data: transactions, isLoading: txLoading } = useTransactions(chain, address);
+
+  // The transaction list is a thin mirror of the ActivityController's feed,
+  // sliced to this wallet. Pin the address so the feed fetches it even when the
+  // wallet was reached by direct URL and is not in the store.
+  const trackWallet = useTrackWallet();
+  useEffect(() => {
+    trackWallet({ chain, address });
+  }, [trackWallet, chain, address]);
+
+  const activityState = useActivityState();
+  const transactions = selectActivityByWallet(activityState, address).filter(
+    activity => activity.source === chain,
+  );
+  const txLoading =
+    (activityState.status === 'loading' || activityState.status === 'idle') &&
+    transactions.length === 0;
 
   const [editLabel, setEditLabel] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -164,11 +181,7 @@ export function WalletDetailView({
         <Card className="mt-6 overflow-hidden">
           <div className="text-sm text-muted-foreground p-4 border-b">Recent Transactions</div>
           <div className="p-2">
-            <TransactionList
-              transactions={transactions ?? []}
-              chain={chain}
-              isLoading={txLoading}
-            />
+            <TransactionList transactions={transactions} chain={chain} isLoading={txLoading} />
           </div>
         </Card>
 

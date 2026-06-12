@@ -8,6 +8,7 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import { TooltipProvider } from '@stackr/ui';
 import { ThemeProvider } from '@/components/theme-provider';
 import { WalletConnectionBridge } from '@/components/wallet-connection-bridge';
+import { ActivityControllerProvider } from '@/lib/controllers/activity-controller-provider';
 import { PostHogProvider, PostHogPageview } from '@/lib/posthog-provider';
 import { wagmiConfig } from '@/lib/wagmi-config';
 import { solanaEndpoint } from '@/lib/solana-config';
@@ -42,7 +43,7 @@ export function Providers({ children }: { children: ReactNode }) {
                   <WalletConnectionBridge />
                   <PostHogProvider>
                     <PostHogPageview />
-                    {children}
+                    <ActivityControllerProvider>{children}</ActivityControllerProvider>
                   </PostHogProvider>
                 </TooltipProvider>
               </WalletProvider>
