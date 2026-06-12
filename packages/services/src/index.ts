@@ -74,16 +74,23 @@ export {
   aaveHealthAdapter,
   type AaveAccountData,
 } from './health/aave.js';
+export {
+  fetchKaminoPosition,
+  normalizeKaminoObligations,
+  kaminoHealthAdapter,
+  type KaminoObligation,
+} from './health/kamino.js';
 import { aaveHealthAdapter } from './health/aave.js';
+import { kaminoHealthAdapter } from './health/kamino.js';
 import type { HealthAdapter } from './ports.js';
 
 /**
  * All liquidation-health adapters, one per protocol. The `useHealthPositions`
  * hook fans out across these (filtered to the adapters whose chain it has
- * addresses for) and merges the non-null results. Stage 1 ships only Aave v3
- * (EVM); Kamino (SOL) and the Stacks protocols register here in later stages.
+ * addresses for) and merges the non-null results. Ships Aave v3 (EVM) and
+ * Kamino (SOL); the Stacks protocols register here in later stages.
  */
-export const healthAdapters: readonly HealthAdapter[] = [aaveHealthAdapter];
+export const healthAdapters: readonly HealthAdapter[] = [aaveHealthAdapter, kaminoHealthAdapter];
 
 export interface FetchBalanceOptions {
   ethApiKey?: string;
