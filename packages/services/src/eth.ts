@@ -3,6 +3,7 @@ import type { Balance } from '@stackr/models';
 import { BalanceSchema, chainMeta } from '@stackr/models';
 import type { BalanceAdapter, BalanceAdapterOptions } from './ports.js';
 import { parseOrThrow } from './validate.js';
+import { formatBaseUnits } from './base-units.js';
 
 const ETHERSCAN_API = 'https://api.etherscan.io/api';
 
@@ -45,7 +46,7 @@ export async function fetchEthBalance(address: string, apiKey?: string): Promise
 
   const { decimals } = chainMeta.eth;
   const rawBalance = data.result;
-  const balance = (Number(BigInt(rawBalance)) / 10 ** decimals).toFixed(decimals);
+  const balance = formatBaseUnits(rawBalance, decimals);
 
   // Egress boundary: guarantee a valid domain `Balance` leaves the adapter.
   return parseOrThrow(

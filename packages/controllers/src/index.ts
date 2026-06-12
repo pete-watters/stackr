@@ -53,4 +53,43 @@ export {
   type PortfolioControllerStateChangeEvent,
 } from './PortfolioController.js';
 
+export {
+  WalletConnectionController,
+  getDefaultWalletConnectionControllerState,
+  selectConnectedAccounts,
+  selectAccountsByChain,
+  type WalletAccount,
+  type WalletSourceAdapter,
+  type WalletSourceStatus,
+  type WalletSourceState,
+  type WalletConnectionControllerState,
+  type WalletConnectionControllerActions,
+  type WalletConnectionControllerEvents,
+  type WalletConnectionControllerMessenger,
+  type WalletConnectionControllerGetStateAction,
+  type WalletConnectionControllerConnectAction,
+  type WalletConnectionControllerDisconnectAction,
+  type WalletConnectionControllerStateChangeEvent,
+} from './WalletConnectionController.js';
+
+export {
+  ActivityController,
+  getDefaultActivityControllerState,
+  toActivity,
+  dedupeAndSort,
+  selectActivityByWallet,
+  selectActivityByChain,
+  type ActivityStatus,
+  type ActivityScope,
+  type ActivityControllerState,
+  type FetchTransactionsFn,
+  type ActivityControllerActions,
+  type ActivityControllerEvents,
+  type ActivityControllerMessenger,
+  type ActivityControllerGetStateAction,
+  type ActivityControllerRefreshAction,
+  type ActivityControllerSetWatchedWalletsAction,
+  type ActivityControllerStateChangeEvent,
+} from './ActivityController.js';
+
 export { selectIncludedHoldings, selectTotalValue, selectWeightedChange24h } from './selectors.js';

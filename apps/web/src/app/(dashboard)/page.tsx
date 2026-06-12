@@ -10,10 +10,12 @@ import { formatFiat } from '@stackr/services';
 import { maskFiat } from '@/lib/mask-fiat';
 import type { Chain, Wallet } from '@stackr/models';
 import { Header } from '@/components/header';
+import { aggregateCryptoPositions, type CryptoPosition } from '@/lib/portfolio-aggregation';
 import { WalletCard } from '@/components/wallet-card';
 import { PortfolioSummary } from '@/components/portfolio-summary';
 import { PortfolioBreakdown } from '@/components/portfolio-breakdown';
 import { RecentActivity } from '@/components/recent-activity';
+import { LiquidationHealth } from '@/components/liquidation-health';
 
 export default function DashboardPage() {
   const wallets = useWalletStore(s => s.wallets);
@@ -41,11 +43,22 @@ export default function DashboardPage() {
   const allWallets = [...wallets, ...connectedWallets];
   const connectedAddressSet = new Set((connectedAddresses.eth ?? []).map(a => a.toLowerCase()));
 
+  // EVM addresses (watched + connected) feed the liquidation-health adapters.
+  const evmAddresses = [...new Set(allWallets.filter(w => w.chain === 'eth').map(w => w.address))];
+
   const balanceQueries = useBalances(allWallets, {
     ethApiKey: etherscanApiKey || undefined,
   });
 
-  const uniqueChains = [...new Set(allWallets.map(w => w.chain))] as Chain[];
+  // Manual crypto positions are priced through the same feed as wallet balances,
+  // so they need their chains in the price query too.
+  const cryptoHoldings = holdings.filter(
+    (h): h is Extract<typeof h, { type: 'crypto' }> => h.type === 'crypto',
+  );
+
+  const uniqueChains = [
+    ...new Set([...allWallets.map(w => w.chain), ...cryptoHoldings.map(h => h.chain)]),
+  ] as Chain[];
   const { data: prices } = usePrices(uniqueChains, currency);
 
   const primaryChain = uniqueChains[0];
@@ -53,15 +66,21 @@ export default function DashboardPage() {
 
   const priceMap = new Map(prices?.map(p => [p.chain, p]) ?? []);
 
-  // Crypto total
-  const cryptoTotal = allWallets.reduce((sum, wallet, i) => {
+  // Wallet balances and manual holdings collapse to the same priced shape, so
+  // a manual position is indistinguishable from a watched balance downstream.
+  const walletPositions = allWallets.flatMap<CryptoPosition>((wallet, i) => {
     const balance = balanceQueries[i]?.data;
-    const price = priceMap.get(wallet.chain);
-    if (balance && price) {
-      return sum + parseFloat(balance.balance) * price.fiatPrice;
-    }
-    return sum;
-  }, 0);
+    return balance ? [{ chain: wallet.chain, quantity: parseFloat(balance.balance) }] : [];
+  });
+  const manualPositions = cryptoHoldings.map<CryptoPosition>(h => ({
+    chain: h.chain,
+    quantity: h.quantity,
+  }));
+
+  const { cryptoTotal, perChain, weightedChange } = aggregateCryptoPositions(
+    [...walletPositions, ...manualPositions],
+    prices ?? [],
+  );
 
   // Cash total
   const cashHoldings = holdings.filter(h => h.type === 'cash');
@@ -83,37 +102,11 @@ export default function DashboardPage() {
 
   const allLoaded = balanceQueries.every(q => !q.isLoading);
 
-  const weightedChange =
-    cryptoTotal > 0
-      ? allWallets.reduce((acc, wallet, i) => {
-          const balance = balanceQueries[i]?.data;
-          const price = priceMap.get(wallet.chain);
-          if (balance && price) {
-            const value = parseFloat(balance.balance) * price.fiatPrice;
-            return acc + (price.change24h * value) / cryptoTotal;
-          }
-          return acc;
-        }, 0)
-      : undefined;
-
-  const allocations = uniqueChains
-    .map(chain => {
-      const chainWallets = allWallets
-        .map((w, i) => ({ w, i }))
-        .filter(({ w }) => w.chain === chain);
-      const fiatValue = chainWallets.reduce((sum, { i }) => {
-        const balance = balanceQueries[i]?.data;
-        const price = priceMap.get(chain);
-        if (balance && price) return sum + parseFloat(balance.balance) * price.fiatPrice;
-        return sum;
-      }, 0);
-      return {
-        chain,
-        fiatValue,
-        percentage: totalFiat > 0 ? (fiatValue / totalFiat) * 100 : 0,
-      };
-    })
-    .filter(a => a.fiatValue > 0);
+  const allocations = perChain.map(({ chain, fiatValue }) => ({
+    chain,
+    fiatValue,
+    percentage: totalFiat > 0 ? (fiatValue / totalFiat) * 100 : 0,
+  }));
 
   const sparklineValues = priceHistory?.map(p => p.price);
   const hasAnything = allWallets.length > 0 || holdings.length > 0;
@@ -196,6 +189,10 @@ export default function DashboardPage() {
                 />
               ))}
             </div>
+
+            {evmAddresses.length > 0 && (
+              <LiquidationHealth addresses={evmAddresses} hideBalance={hideBalance} />
+            )}
 
             <RecentActivity wallets={allWallets} />
           </>

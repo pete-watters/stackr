@@ -13,6 +13,7 @@ export type {
   TransactionAdapter,
   StockAdapter,
   OrderBookAdapter,
+  HealthAdapter,
 } from './ports.js';
 
 export { fetchBtcBalance, btcBalanceAdapter } from './btc.js';
@@ -27,6 +28,7 @@ export {
   coinGeckoPriceAdapter,
 } from './prices.js';
 export { parseOrThrow } from './validate.js';
+export { formatBaseUnits } from './base-units.js';
 export { formatFiat, formatUsd, formatCrypto, formatChange } from './format.js';
 export {
   serializeOrderBook,
@@ -40,6 +42,12 @@ export {
   type KrakenBookLevel,
   type BookState,
 } from './orderbook.js';
+export {
+  parseTickerFrame,
+  createKrakenTickerWs,
+  type Tick,
+  type KrakenTickerMessage,
+} from './ticker.js';
 export {
   fetchTransactions,
   transactionAdapter,
@@ -59,6 +67,23 @@ export {
   type StockSearchResult,
   type StockQuote,
 } from './stocks.js';
+
+export {
+  fetchAavePosition,
+  normalizeAaveAccountData,
+  aaveHealthAdapter,
+  type AaveAccountData,
+} from './health/aave.js';
+import { aaveHealthAdapter } from './health/aave.js';
+import type { HealthAdapter } from './ports.js';
+
+/**
+ * All liquidation-health adapters, one per protocol. The `useHealthPositions`
+ * hook fans out across these (filtered to the adapters whose chain it has
+ * addresses for) and merges the non-null results. Stage 1 ships only Aave v3
+ * (EVM); Kamino (SOL) and the Stacks protocols register here in later stages.
+ */
+export const healthAdapters: readonly HealthAdapter[] = [aaveHealthAdapter];
 
 export interface FetchBalanceOptions {
   ethApiKey?: string;
