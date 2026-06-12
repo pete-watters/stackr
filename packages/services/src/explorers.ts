@@ -7,6 +7,7 @@ const explorerUrls: Record<Chain, string> = {
   eth: 'https://etherscan.io',
   stx: 'https://explorer.hiro.so',
   sol: 'https://solscan.io',
+  sui: 'https://suiscan.xyz/mainnet',
 };
 
 const pathPatterns: Record<Chain, Record<ExplorerType, string>> = {
@@ -14,6 +15,7 @@ const pathPatterns: Record<Chain, Record<ExplorerType, string>> = {
   eth: { tx: '/tx/', address: '/address/', block: '/block/' },
   stx: { tx: '/txid/', address: '/address/', block: '/block/' },
   sol: { tx: '/tx/', address: '/account/', block: '/block/' },
+  sui: { tx: '/tx/', address: '/account/', block: '/checkpoint/' },
 };
 
 export function getExplorerUrl(chain: Chain, type: ExplorerType, hash: string): string {

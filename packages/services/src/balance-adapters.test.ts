@@ -60,6 +60,18 @@ describe('balance adapters — normalization', () => {
     });
   });
 
+  it('normalizes a Sui getBalance payload (9 decimals, MIST string)', async () => {
+    mockFetchOnce({ result: { coinType: '0x2::sui::SUI', totalBalance: '4000000000' } });
+
+    const balance = await fetchBalance('sui', `0x${'b'.repeat(64)}`);
+
+    expect(balance).toMatchObject({
+      chain: 'sui',
+      rawBalance: '4000000000',
+      balance: '4.000000000',
+    });
+  });
+
   it('normalizes a Hiro STX payload (6 decimals)', async () => {
     mockFetchOnce({ balance: '5000000' });
 

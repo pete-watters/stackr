@@ -3,6 +3,7 @@ import { btcBalanceAdapter } from './btc.js';
 import { stxBalanceAdapter } from './stx.js';
 import { ethBalanceAdapter } from './eth.js';
 import { solBalanceAdapter } from './sol.js';
+import { suiBalanceAdapter } from './sui.js';
 import type { BalanceAdapter } from './ports.js';
 
 // Provider ports (the contracts the app depends on) and the concrete adapters.
@@ -20,6 +21,7 @@ export { fetchBtcBalance, btcBalanceAdapter } from './btc.js';
 export { fetchStxBalance, lookupStacksBnsName, stxBalanceAdapter } from './stx.js';
 export { fetchEthBalance, ethBalanceAdapter } from './eth.js';
 export { fetchSolBalance, solBalanceAdapter } from './sol.js';
+export { fetchSuiBalance, suiBalanceAdapter } from './sui.js';
 export {
   fetchPrices,
   fetchPriceHistory,
@@ -55,6 +57,7 @@ export {
   normalizeEthTransactions,
   normalizeStxTransactions,
   normalizeSolTransactions,
+  normalizeSuiTransactions,
 } from './transactions.js';
 export { getExplorerUrl } from './explorers.js';
 export {
@@ -107,6 +110,7 @@ const balanceAdapters = {
   stx: stxBalanceAdapter,
   eth: ethBalanceAdapter,
   sol: solBalanceAdapter,
+  sui: suiBalanceAdapter,
 } satisfies Record<Chain, BalanceAdapter>;
 
 export async function fetchBalance(
