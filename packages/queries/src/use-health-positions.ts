@@ -1,7 +1,16 @@
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import type { HealthPosition } from '@stackr/models';
+import type { Chain, HealthPosition } from '@stackr/models';
 import { healthAdapters } from '@stackr/services';
 import { queryKeys } from './keys.js';
+
+/** Watched/connected addresses grouped by the chain they live on. */
+export type HealthAddressesByChain = Partial<Record<Chain, string[]>>;
+
+/** One adapter paired with one address it should read. */
+export interface HealthQueryPair {
+  adapter: (typeof healthAdapters)[number];
+  address: string;
+}
 
 /**
  * Liquidation-health is refreshed **on demand**, never background-polled: the
@@ -40,16 +49,29 @@ export function mergeHealthPositions(
 }
 
 /**
- * Fans the health adapters out across the given EVM addresses, one query per
- * adapter × address, and merges the results. Stage 1 ships the Aave v3 adapter
- * (EVM); later stages register Kamino (SOL) and the Stacks protocols.
+ * Pairs each adapter only with addresses on its own chain — Aave with EVM
+ * accounts, Kamino with Solana accounts — so an adapter never reads an address
+ * it can't serve. Pure, so the fan-out is unit-testable without React Query.
  */
-export function useHealthPositions(addresses: string[]): UseHealthPositionsResult {
+export function healthQueryPairs(addressesByChain: HealthAddressesByChain): HealthQueryPair[] {
+  return healthAdapters.flatMap(adapter =>
+    (addressesByChain[adapter.chain] ?? []).map(address => ({ adapter, address })),
+  );
+}
+
+/**
+ * Fans the health adapters out across the given addresses (grouped by chain),
+ * one query per adapter × matching address, and merges the results. Ships the
+ * Aave v3 (EVM) and Kamino (SOL) adapters; later stages register the Stacks
+ * protocols. Each pair is its own query, so one adapter erroring leaves the
+ * others' results intact (per-adapter isolation).
+ */
+export function useHealthPositions(
+  addressesByChain: HealthAddressesByChain,
+): UseHealthPositionsResult {
   const queryClient = useQueryClient();
 
-  // The addresses handed in are EVM accounts, so only the EVM adapters apply.
-  const evmAdapters = healthAdapters.filter(adapter => adapter.chain === 'eth');
-  const pairs = evmAdapters.flatMap(adapter => addresses.map(address => ({ adapter, address })));
+  const pairs = healthQueryPairs(addressesByChain);
 
   const queries = useQueries({
     queries: pairs.map(({ adapter, address }) => ({

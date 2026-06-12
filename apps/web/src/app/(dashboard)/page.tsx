@@ -43,8 +43,10 @@ export default function DashboardPage() {
   const allWallets = [...wallets, ...connectedWallets];
   const connectedAddressSet = new Set((connectedAddresses.eth ?? []).map(a => a.toLowerCase()));
 
-  // EVM addresses (watched + connected) feed the liquidation-health adapters.
+  // Addresses (watched + connected) feed the liquidation-health adapters,
+  // grouped by chain: EVM → Aave, Solana → Kamino.
   const evmAddresses = [...new Set(allWallets.filter(w => w.chain === 'eth').map(w => w.address))];
+  const solAddresses = [...new Set(allWallets.filter(w => w.chain === 'sol').map(w => w.address))];
 
   const balanceQueries = useBalances(allWallets, {
     ethApiKey: etherscanApiKey || undefined,
@@ -190,8 +192,11 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            {evmAddresses.length > 0 && (
-              <LiquidationHealth addresses={evmAddresses} hideBalance={hideBalance} />
+            {(evmAddresses.length > 0 || solAddresses.length > 0) && (
+              <LiquidationHealth
+                addressesByChain={{ eth: evmAddresses, sol: solAddresses }}
+                hideBalance={hideBalance}
+              />
             )}
 
             <RecentActivity wallets={allWallets} />
