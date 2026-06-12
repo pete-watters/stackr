@@ -2,9 +2,11 @@ import type {
   Balance,
   Chain,
   Currency,
+  HealthPosition,
   OrderBook,
   Price,
   PriceHistoryPoint,
+  Protocol,
   StockQuote,
   StockSearchResult,
   Transaction,
@@ -63,6 +65,25 @@ export interface StockAdapter {
   fetchQuote(symbol: string, apiKey: string): Promise<StockQuote>;
   fetchQuotes(symbols: string[], apiKey: string): Promise<StockQuote[]>;
   fetchPriceHistory(symbol: string, apiKey: string, days: number): Promise<PriceHistoryPoint[]>;
+}
+
+/**
+ * A single lending protocol's liquidation-health source (one adapter per
+ * protocol). The adapter does one read-only call per account and maps the
+ * protocol's native numbers onto the normalized `HealthPosition` shape,
+ * validated on egress — the moat (the normalization) stays on data we read and
+ * math we control, never an aggregator (see ADR 0016).
+ *
+ * `fetchPosition` resolves to `null` when the account has no position on this
+ * protocol (no collateral and no debt), so the hook can fan out across every
+ * watched address and simply drop the misses.
+ */
+export interface HealthAdapter {
+  /** The protocol this adapter serves; used to build the dispatch registry. */
+  readonly protocol: Protocol;
+  /** The chain this protocol lives on. */
+  readonly chain: Chain;
+  fetchPosition(address: string): Promise<HealthPosition | null>;
 }
 
 /**
