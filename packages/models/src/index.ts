@@ -20,6 +20,14 @@ export {
   type HealthPosition,
 } from './health.js';
 export {
+  ActivitySchema,
+  ActivityDirectionSchema,
+  ActivityCategorySchema,
+  type Activity,
+  type ActivityDirection,
+  type ActivityCategory,
+} from './activity.js';
+export {
   CashHoldingSchema,
   StockHoldingSchema,
   CryptoHoldingSchema,
