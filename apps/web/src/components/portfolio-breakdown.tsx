@@ -20,6 +20,7 @@ const chainBarColors: Record<Chain, string> = {
   eth: '#627EEA',
   stx: '#5546FF',
   sol: '#9945FF',
+  sui: '#4DA2FF',
 };
 
 export function PortfolioBreakdown({ allocations }: PortfolioBreakdownProps) {
