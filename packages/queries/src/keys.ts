@@ -1,7 +1,10 @@
-import type { Chain, Currency } from '@stackr/models';
+import type { Chain, Currency, Protocol } from '@stackr/models';
 
 export const queryKeys = {
   all: ['stackr'] as const,
+  health: () => [...queryKeys.all, 'health'] as const,
+  healthPosition: (protocol: Protocol, address: string) =>
+    [...queryKeys.health(), protocol, address] as const,
   balances: () => [...queryKeys.all, 'balance'] as const,
   balance: (chain: Chain, address: string) => [...queryKeys.balances(), chain, address] as const,
   prices: () => [...queryKeys.all, 'prices'] as const,
