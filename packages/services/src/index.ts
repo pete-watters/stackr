@@ -29,6 +29,7 @@ export {
   normalizeMarketChart,
   coinGeckoPriceAdapter,
 } from './prices.js';
+export { ETH_PROXY_PATH, ethPublicRpcUrl, resolveEthRpcUrl } from './eth-rpc.js';
 export { parseOrThrow } from './validate.js';
 export { formatBaseUnits } from './base-units.js';
 export { formatFiat, formatUsd, formatCrypto, formatChange, maskFiat } from './format.js';
