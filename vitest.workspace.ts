@@ -8,4 +8,5 @@ export default defineWorkspace([
   'packages/services/vitest.config.ts',
   'packages/queries/vitest.config.ts',
   'packages/controllers/vitest.config.ts',
+  'packages/features/vitest.config.ts',
 ]);
