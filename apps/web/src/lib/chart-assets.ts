@@ -20,7 +20,7 @@ export const CHART_RANGES: ChartRange[] = [
 ];
 
 // When the user tracks nothing yet, the page still demos with the core chains.
-const DEFAULT_CHAINS: Chain[] = ['btc', 'eth', 'sol', 'stx'];
+const DEFAULT_CHAINS: Chain[] = ['btc', 'eth', 'sol', 'stx', 'sui'];
 
 /**
  * The assets a user can chart: the distinct chains they watch/connect (or the
@@ -80,6 +80,7 @@ const CRYPTO_MID_PRICE: Record<Chain, number> = {
   eth: 3_000,
   sol: 150,
   stx: 2,
+  sui: 3,
 };
 
 /**

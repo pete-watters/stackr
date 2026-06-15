@@ -3,6 +3,7 @@ import { btcBalanceAdapter } from './btc.js';
 import { stxBalanceAdapter } from './stx.js';
 import { ethBalanceAdapter } from './eth.js';
 import { solBalanceAdapter } from './sol.js';
+import { suiBalanceAdapter } from './sui.js';
 import type { BalanceAdapter } from './ports.js';
 
 // Provider ports (the contracts the app depends on) and the concrete adapters.
@@ -20,6 +21,7 @@ export { fetchBtcBalance, btcBalanceAdapter } from './btc.js';
 export { fetchStxBalance, lookupStacksBnsName, stxBalanceAdapter } from './stx.js';
 export { fetchEthBalance, ethBalanceAdapter } from './eth.js';
 export { fetchSolBalance, solBalanceAdapter } from './sol.js';
+export { fetchSuiBalance, suiBalanceAdapter } from './sui.js';
 export {
   fetchPrices,
   fetchPriceHistory,
@@ -55,6 +57,7 @@ export {
   normalizeEthTransactions,
   normalizeStxTransactions,
   normalizeSolTransactions,
+  normalizeSuiTransactions,
 } from './transactions.js';
 export { getExplorerUrl } from './explorers.js';
 export {
@@ -74,16 +77,23 @@ export {
   aaveHealthAdapter,
   type AaveAccountData,
 } from './health/aave.js';
+export {
+  fetchKaminoPosition,
+  normalizeKaminoObligations,
+  kaminoHealthAdapter,
+  type KaminoObligation,
+} from './health/kamino.js';
 import { aaveHealthAdapter } from './health/aave.js';
+import { kaminoHealthAdapter } from './health/kamino.js';
 import type { HealthAdapter } from './ports.js';
 
 /**
  * All liquidation-health adapters, one per protocol. The `useHealthPositions`
  * hook fans out across these (filtered to the adapters whose chain it has
- * addresses for) and merges the non-null results. Stage 1 ships only Aave v3
- * (EVM); Kamino (SOL) and the Stacks protocols register here in later stages.
+ * addresses for) and merges the non-null results. Ships Aave v3 (EVM) and
+ * Kamino (SOL); the Stacks protocols register here in later stages.
  */
-export const healthAdapters: readonly HealthAdapter[] = [aaveHealthAdapter];
+export const healthAdapters: readonly HealthAdapter[] = [aaveHealthAdapter, kaminoHealthAdapter];
 
 export interface FetchBalanceOptions {
   ethApiKey?: string;
@@ -100,6 +110,7 @@ const balanceAdapters = {
   stx: stxBalanceAdapter,
   eth: ethBalanceAdapter,
   sol: solBalanceAdapter,
+  sui: suiBalanceAdapter,
 } satisfies Record<Chain, BalanceAdapter>;
 
 export async function fetchBalance(
