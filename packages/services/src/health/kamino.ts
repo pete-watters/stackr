@@ -54,7 +54,7 @@ const SCALE_DECIMALS = 18;
 const SCALE = 10n ** BigInt(SCALE_DECIMALS);
 
 function obligationsUrl(address: string): string {
-  return `${KAMINO_API_BASE}/${KAMINO_MAIN_MARKET}/users/${address}/obligations`;
+  return `${KAMINO_API_BASE}/${KAMINO_MAIN_MARKET}/users/${encodeURIComponent(address)}/obligations`;
 }
 
 /**

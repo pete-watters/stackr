@@ -88,7 +88,9 @@ export function normalizeBtcTransactions(txs: BlockstreamTx[], address: string):
 }
 
 async function fetchBtcTransactions(address: string): Promise<Transaction[]> {
-  const res = await fetch(`https://blockstream.info/api/address/${address}/txs`);
+  const res = await fetch(
+    `https://blockstream.info/api/address/${encodeURIComponent(address)}/txs`,
+  );
   if (!res.ok) throw new Error(`Blockstream API error: ${res.status}`);
 
   const data = parseOrThrow(
@@ -146,7 +148,7 @@ export function normalizeEthTransactions(txs: EtherscanTx[], address: string): T
 async function fetchEthTransactions(address: string, apiKey?: string): Promise<Transaction[]> {
   const keyParam = apiKey ? `&apikey=${apiKey}` : '';
   const res = await fetch(
-    `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&page=1&offset=20${keyParam}`,
+    `https://api.etherscan.io/api?module=account&action=txlist&address=${encodeURIComponent(address)}&startblock=0&endblock=99999999&sort=desc&page=1&offset=20${keyParam}`,
   );
   if (!res.ok) throw new Error(`Etherscan API error: ${res.status}`);
 
@@ -212,7 +214,7 @@ export function normalizeStxTransactions(txs: HiroTx[], address: string): Transa
 
 async function fetchStxTransactions(address: string): Promise<Transaction[]> {
   const res = await fetch(
-    `https://api.hiro.so/extended/v1/address/${address}/transactions?limit=20`,
+    `https://api.hiro.so/extended/v1/address/${encodeURIComponent(address)}/transactions?limit=20`,
   );
   if (!res.ok) throw new Error(`Hiro API error: ${res.status}`);
 

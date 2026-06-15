@@ -23,6 +23,7 @@ import {
   CopyButton,
   Skeleton,
 } from '@stackr/ui';
+import { validateAddress } from '@stackr/models';
 import { useWalletStore } from '@/lib/wallet-store';
 import { useSettingsStore } from '@/lib/settings-store';
 import { Header } from '@/components/header';
@@ -43,6 +44,7 @@ export function WalletDetailView({
   const router = useRouter();
   const chainResult = ChainSchema.safeParse(chainParam);
   const chain: Chain = chainResult.success ? chainResult.data : 'btc';
+  const addressResult = chainResult.success ? validateAddress(chain, address) : null;
   const meta = chainMeta[chain];
 
   // Coarse, PII-free event: only the chain slug is recorded, never the
@@ -94,6 +96,17 @@ export function WalletDetailView({
         <Header />
         <main className="mx-auto max-w-3xl px-4 py-6 text-center">
           <p className="text-destructive">Invalid chain: {chainParam}</p>
+        </main>
+      </>
+    );
+  }
+
+  if (addressResult && !addressResult.valid) {
+    return (
+      <>
+        <Header />
+        <main className="mx-auto max-w-3xl px-4 py-6 text-center">
+          <p className="text-destructive">Invalid address: {addressResult.error}</p>
         </main>
       </>
     );
