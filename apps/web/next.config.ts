@@ -63,12 +63,26 @@ const analyticsConnect = [
   'https://us-assets.i.posthog.com', // PostHog static assets (array.js / recorder)
 ];
 
+// Next's dev runtime (React Refresh / HMR / eval'd source maps) requires
+// 'unsafe-eval'; production does not. We allow it ONLY in development so the
+// enforced production policy stays strict ('wasm-unsafe-eval' for wallet/crypto
+// WASM, no general eval). e2e runs against `pnpm dev`, so without this the dev
+// CSP blocks React Refresh and breaks client rendering.
+const isDev = process.env.NODE_ENV !== 'production';
+const scriptSrc = [
+  "script-src 'self'",
+  "'unsafe-inline'", // Next inline bootstrap scripts (no nonce pipeline under OpenNext)
+  "'wasm-unsafe-eval'", // wallet/crypto WASM
+  ...(isDev ? ["'unsafe-eval'"] : []), // dev-only: React Refresh / HMR
+  'https://us-assets.i.posthog.com',
+].join(' ');
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   // 'unsafe-inline' covers Next's inline bootstrap scripts (no nonce pipeline
-  // under OpenNext); 'wasm-unsafe-eval' covers wallet/crypto WASM. The previous
-  // blanket 'unsafe-eval' is intentionally dropped.
-  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://us-assets.i.posthog.com",
+  // under OpenNext); 'wasm-unsafe-eval' covers wallet/crypto WASM. The blanket
+  // 'unsafe-eval' is dropped in production, allowed only in dev (see scriptSrc).
+  scriptSrc,
   // Tailwind, RainbowKit and the wallet UIs inject inline styles.
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
