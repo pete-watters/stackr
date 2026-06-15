@@ -2,8 +2,7 @@ import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { metaMaskWallet } from '@rainbow-me/rainbowkit/wallets';
 import { mainnet } from 'wagmi/chains';
 import { http } from 'wagmi';
-
-const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+import { resolveEthRpcUrl } from '@stackr/services';
 
 // RainbowKit's getDefaultConfig requires a non-empty projectId even when the
 // wallet list excludes WalletConnect — set a placeholder so SSR prerender
@@ -16,7 +15,9 @@ export const wagmiConfig = getDefaultConfig({
   projectId,
   chains: [mainnet],
   transports: {
-    [mainnet.id]: alchemyKey ? http(`https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`) : http(),
+    // Same-origin proxy in the browser (keeps the Alchemy key server-side),
+    // public RPC during SSR. See `resolveEthRpcUrl`.
+    [mainnet.id]: http(resolveEthRpcUrl()),
   },
   wallets: [{ groupName: 'Recommended', wallets: [metaMaskWallet] }],
   ssr: true,
