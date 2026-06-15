@@ -64,17 +64,46 @@ const ALLOWED_METHODS = new Set([
 const RATE_LIMIT_PER_MINUTE = 120;
 const rateWindow = new Map<string, { count: number; resetAt: number }>();
 
-function isRateLimited(ip: string, now: number): boolean {
-  const entry = rateWindow.get(ip);
+function isRateLimited(key: string, now: number): boolean {
+  const entry = rateWindow.get(key);
   if (!entry || entry.resetAt <= now) {
     if (rateWindow.size > 10_000) {
       rateWindow.clear();
     }
-    rateWindow.set(ip, { count: 1, resetAt: now + 60_000 });
+    rateWindow.set(key, { count: 1, resetAt: now + 60_000 });
     return false;
   }
   entry.count += 1;
   return entry.count > RATE_LIMIT_PER_MINUTE;
+}
+
+// FNV-1a (32-bit). A tiny synchronous hash so the rate-limit key derived from a
+// forwarded-for chain doesn't retain raw client IPs in the isolate's map.
+function hashKey(value: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+/**
+ * Resolve the per-client rate-limit key.
+ *
+ * Cloudflare sets `cf-connecting-ip` on every edge request, so first-party
+ * browser traffic always keys off the real client IP. When that is absent we
+ * fall back to a hash of the `x-forwarded-for` chain so header-less traffic
+ * doesn't collapse into a single shared bucket. With neither header there is
+ * nothing to identify the caller, so we fail closed rather than hand out a
+ * shared allowance.
+ */
+function resolveRateLimitKey(request: Request): string | null {
+  const connectingIp = request.headers.get('cf-connecting-ip');
+  if (connectingIp) return `ip:${connectingIp}`;
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) return `xff:${hashKey(forwardedFor)}`;
+  return null;
 }
 
 function collectMethods(parsed: unknown): string[] | null {
@@ -99,7 +128,11 @@ function collectMethods(parsed: unknown): string[] | null {
 function rpcError(status: number, code: number, message: string): Response {
   return Response.json(
     { jsonrpc: '2.0', id: null, error: { code, message } },
-    { status, headers: { 'Content-Type': 'application/json' } },
+    {
+      status,
+      // `no-store`: error bodies can reflect request shape; never cache them.
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+    },
   );
 }
 
@@ -122,19 +155,23 @@ async function resolveHeliusApiKey(): Promise<string | undefined> {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  // Same-origin restriction: browsers send Origin on cross-origin (and all
-  // CORS) requests; a mismatch means another site is using us as a free relay.
+  // Same-origin restriction. A cross-origin Origin header is rejected, and we
+  // require Sec-Fetch-Site to positively assert `same-origin`. Legitimate
+  // first-party browser fetches always send it, and the app's own consumers
+  // only reach this route from the browser — server-side/SSR callers target the
+  // public RPC directly and never this proxy (see `resolveSolanaEndpoint`). So a
+  // request that doesn't carry that label — including one that omits the header
+  // entirely — is not first-party and is refused.
   const origin = request.headers.get('origin');
   if (origin !== null && origin !== new URL(request.url).origin) {
     return rpcError(403, -32000, 'cross-origin requests are not allowed');
   }
-  const fetchSite = request.headers.get('sec-fetch-site');
-  if (fetchSite !== null && fetchSite !== 'same-origin' && fetchSite !== 'none') {
+  if (request.headers.get('sec-fetch-site') !== 'same-origin') {
     return rpcError(403, -32000, 'cross-origin requests are not allowed');
   }
 
-  const ip = request.headers.get('cf-connecting-ip') ?? 'unknown';
-  if (isRateLimited(ip, Date.now())) {
+  const rateLimitKey = resolveRateLimitKey(request);
+  if (rateLimitKey === null || isRateLimited(rateLimitKey, Date.now())) {
     return rpcError(429, -32000, 'rate limit exceeded');
   }
 
@@ -160,7 +197,9 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const apiKey = await resolveHeliusApiKey();
-  const upstream = apiKey ? `${HELIUS_RPC}/?api-key=${apiKey}` : SOLANA_PUBLIC_RPC;
+  const upstream = apiKey
+    ? `${HELIUS_RPC}/?api-key=${encodeURIComponent(apiKey)}`
+    : SOLANA_PUBLIC_RPC;
 
   let upstreamRes: Response;
   try {
@@ -186,6 +225,8 @@ export async function POST(request: Request): Promise<Response> {
     status: upstreamRes.status,
     headers: {
       'Content-Type': 'application/json',
+      // Responses carry wallet/account data — never let a shared cache hold them.
+      'Cache-Control': 'no-store',
       // Signal which upstream served the request, WITHOUT leaking the key. Lets
       // the client (or a future health check) observe whether the proxy is
       // key-backed; `absent` means we fell back to the public cluster.
