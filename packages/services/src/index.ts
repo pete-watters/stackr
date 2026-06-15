@@ -31,7 +31,7 @@ export {
 } from './prices.js';
 export { parseOrThrow } from './validate.js';
 export { formatBaseUnits } from './base-units.js';
-export { formatFiat, formatUsd, formatCrypto, formatChange } from './format.js';
+export { formatFiat, formatUsd, formatCrypto, formatChange, maskFiat } from './format.js';
 export {
   serializeOrderBook,
   generateMockOrderBook,
