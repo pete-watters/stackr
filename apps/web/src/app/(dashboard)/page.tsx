@@ -16,6 +16,7 @@ import { PortfolioSummary } from '@/components/portfolio-summary';
 import { PortfolioBreakdown } from '@/components/portfolio-breakdown';
 import { RecentActivity } from '@/components/recent-activity';
 import { LiquidationHealth } from '@/components/liquidation-health';
+import { Collectibles } from '@/components/collectibles';
 
 export default function DashboardPage() {
   const wallets = useWalletStore(s => s.wallets);
@@ -47,6 +48,10 @@ export default function DashboardPage() {
   // grouped by chain: EVM → Aave, Solana → Kamino.
   const evmAddresses = [...new Set(allWallets.filter(w => w.chain === 'eth').map(w => w.address))];
   const solAddresses = [...new Set(allWallets.filter(w => w.chain === 'sol').map(w => w.address))];
+
+  // STX addresses feed the SIP-9 NFT adapter (Collectibles section). More
+  // chains plug in here as their NFT adapters land (#93).
+  const stxAddresses = [...new Set(allWallets.filter(w => w.chain === 'stx').map(w => w.address))];
 
   const balanceQueries = useBalances(allWallets, {
     ethApiKey: etherscanApiKey || undefined,
@@ -197,6 +202,10 @@ export default function DashboardPage() {
                 addressesByChain={{ eth: evmAddresses, sol: solAddresses }}
                 hideBalance={hideBalance}
               />
+            )}
+
+            {stxAddresses.length > 0 && (
+              <Collectibles addressesByChain={{ stx: stxAddresses }} hideBalance={hideBalance} />
             )}
 
             <RecentActivity wallets={allWallets} />

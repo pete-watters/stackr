@@ -3,6 +3,8 @@ import type {
   Chain,
   Currency,
   HealthPosition,
+  NftAsset,
+  NftProtocol,
   OrderBook,
   Price,
   PriceHistoryPoint,
@@ -84,6 +86,27 @@ export interface HealthAdapter {
   /** The chain this protocol lives on. */
   readonly chain: Chain;
   fetchPosition(address: string): Promise<HealthPosition | null>;
+}
+
+/**
+ * A single NFT source (one adapter per chain × protocol). The adapter reads an
+ * address's holdings from its vendor (Hiro + Gamma for Stacks SIP-9, Alchemy
+ * for EVM, …), maps each token onto the normalized `NftAsset` shape, resolves
+ * its media to a gateway URL, and validates on egress — so a vendor payload
+ * never leaks past the adapter (same anti-corruption rule as balances and
+ * health; see #93 / ADR 0012).
+ *
+ * `fetchNfts` resolves to `[]` for an address that holds nothing on this
+ * source, so the hook can fan out across every watched address and concat the
+ * results. One source failing must never blank the others (the hook isolates
+ * each adapter × address as its own query).
+ */
+export interface NftAdapter {
+  /** The chain this adapter serves; used to build the dispatch registry. */
+  readonly chain: Chain;
+  /** The NFT standard this adapter reads. */
+  readonly protocol: NftProtocol;
+  fetchNfts(address: string): Promise<NftAsset[]>;
 }
 
 /**
