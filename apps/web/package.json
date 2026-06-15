@@ -28,6 +28,7 @@
     "@stackr/analytics": "workspace:*",
     "@stackr/charts": "workspace:*",
     "@stackr/controllers": "workspace:*",
+    "@stackr/features": "workspace:*",
     "@stackr/models": "workspace:*",
     "@stackr/queries": "workspace:*",
     "@stackr/services": "workspace:*",

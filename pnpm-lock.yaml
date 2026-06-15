@@ -68,6 +68,9 @@ importers:
       '@stackr/controllers':
         specifier: workspace:*
         version: link:../../packages/controllers
+      '@stackr/features':
+        specifier: workspace:*
+        version: link:../../packages/features
       '@stackr/models':
         specifier: workspace:*
         version: link:../../packages/models
@@ -275,6 +278,34 @@ importers:
       typescript-eslint:
         specifier: ^8.19.1
         version: 8.56.1(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3)
+
+  packages/features:
+    dependencies:
+      '@stackr/models':
+        specifier: workspace:*
+        version: link:../models
+      '@stackr/services':
+        specifier: workspace:*
+        version: link:../services
+    devDependencies:
+      '@stackr/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@stackr/tsconfig-config':
+        specifier: workspace:*
+        version: link:../tsconfig-config
+      '@types/react':
+        specifier: ^19.0.3
+        version: 19.2.14
+      eslint:
+        specifier: ^9.17.0
+        version: 9.39.3(jiti@2.6.1)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
 
   packages/models:
     dependencies:
