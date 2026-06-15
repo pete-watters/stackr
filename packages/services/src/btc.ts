@@ -24,7 +24,7 @@ const BlockstreamAddressSchema = z.object({
 });
 
 export async function fetchBtcBalance(address: string): Promise<Balance> {
-  const res = await fetch(`${BLOCKSTREAM_API}/address/${address}`);
+  const res = await fetch(`${BLOCKSTREAM_API}/address/${encodeURIComponent(address)}`);
 
   if (!res.ok) {
     throw new Error(`Failed to fetch BTC balance: ${res.status} ${res.statusText}`);
