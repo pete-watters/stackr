@@ -229,6 +229,7 @@ export async function POST(request: Request): Promise<Response> {
       'Content-Type': 'application/json',
       // Responses carry wallet/account data — never let a shared cache hold them.
       'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
       // Signal which upstream served the request, WITHOUT leaking the key. Lets
       // the client (or a future health check) observe whether the proxy is
       // key-backed; `public` means we fell back to the public RPC.
