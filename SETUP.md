@@ -38,16 +38,18 @@ pnpm format:check  # Prettier check (CI mode)
 All env vars are optional. Without them, stackr falls back to public RPCs
 where possible.
 
-| Variable                     | Purpose                                                    |
-| ---------------------------- | ---------------------------------------------------------- |
-| `ALCHEMY_API_KEY`            | Higher-rate Ethereum RPC (server-only, via `/api/rpc/eth`) |
-| `NEXT_PUBLIC_HELIUS_API_KEY` | Higher-rate Solana RPC + SPL token metadata                |
-| (user-entered in Settings)   | Etherscan API key for richer ETH balance data              |
-| (user-entered in Settings)   | Alpha Vantage API key for stock prices + charts            |
+| Variable                   | Purpose                                                                          |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| `ALCHEMY_API_KEY`          | Higher-rate Ethereum RPC (server-only, via `/api/rpc/eth`)                       |
+| `HELIUS_API_KEY`           | Higher-rate Solana RPC + SPL token metadata (server-only, via `/api/rpc/solana`) |
+| (user-entered in Settings) | Etherscan API key for richer ETH balance data                                    |
+| (user-entered in Settings) | Alpha Vantage API key for stock prices + charts                                  |
 
 Public (`NEXT_PUBLIC_`) vars go in `.env.local`. Server-only secrets like
-`ALCHEMY_API_KEY` go in `apps/web/.dev.vars` (copy `apps/web/.dev.vars.example`)
-for local dev and `wrangler secret put` for deploys — never commit either.
+`ALCHEMY_API_KEY` and `HELIUS_API_KEY` (no `NEXT_PUBLIC_` prefix — they must
+never reach the browser bundle) go in `apps/web/.dev.vars` (copy
+`apps/web/.dev.vars.example`) for local dev and become `wrangler secret put`
+secrets for deploys — never commit either.
 
 ## Workspace layout
 
