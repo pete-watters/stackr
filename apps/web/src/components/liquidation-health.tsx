@@ -4,7 +4,7 @@ import type { Protocol } from '@stackr/models';
 import { chainMeta } from '@stackr/models';
 import { Badge, Button, Card, ChainAvatar, Skeleton } from '@stackr/ui';
 import { formatFiat } from '@stackr/services';
-import { useHealthPositions } from '@stackr/queries';
+import { useHealthPositions, type HealthAddressesByChain } from '@stackr/queries';
 import { maskFiat } from '@/lib/mask-fiat';
 import { RiskPill } from './risk-pill';
 
@@ -20,13 +20,19 @@ function maskAddress(address: string): string {
 }
 
 interface LiquidationHealthProps {
-  /** EVM addresses to read liquidation health for (watched + connected). */
-  addresses: string[];
+  /**
+   * Watched + connected addresses to read liquidation health for, grouped by
+   * chain — EVM addresses feed Aave, Solana addresses feed Kamino.
+   */
+  addressesByChain: HealthAddressesByChain;
   hideBalance?: boolean;
 }
 
-export function LiquidationHealth({ addresses, hideBalance = false }: LiquidationHealthProps) {
-  const { positions, isLoading, isFetching, refresh } = useHealthPositions(addresses);
+export function LiquidationHealth({
+  addressesByChain,
+  hideBalance = false,
+}: LiquidationHealthProps) {
+  const { positions, isLoading, isFetching, refresh } = useHealthPositions(addressesByChain);
 
   return (
     <Card className="mt-4 p-4">
