@@ -4,6 +4,7 @@ import {
   normalizeEthTransactions,
   normalizeStxTransactions,
   normalizeSolTransactions,
+  normalizeSuiTransactions,
 } from './transactions';
 
 const ME = 'bc1qme';
@@ -121,5 +122,85 @@ describe('normalizeSolTransactions', () => {
       confirmed: true,
     });
     expect(result[1]).toMatchObject({ hash: 'sig2', confirmed: false });
+  });
+});
+
+describe('normalizeSuiTransactions', () => {
+  const SUI = '0x2::sui::SUI';
+  const SUI_ME = `0x${'a'.repeat(64)}`;
+  const SUI_OTHER = `0x${'b'.repeat(64)}`;
+
+  it('reads direction and amount from the watched address SUI balance delta', () => {
+    const txs = [
+      {
+        digest: 'd_in',
+        timestampMs: '1700000000000',
+        transaction: { data: { sender: SUI_OTHER } },
+        balanceChanges: [
+          { coinType: SUI, amount: '1500000000', owner: { AddressOwner: SUI_ME } },
+          { coinType: SUI, amount: '-1500000000', owner: { AddressOwner: SUI_OTHER } },
+        ],
+      },
+    ];
+
+    expect(normalizeSuiTransactions(txs, SUI_ME)).toEqual([
+      {
+        hash: 'd_in',
+        chain: 'sui',
+        type: 'receive',
+        amount: '1.500000000',
+        counterparty: SUI_OTHER,
+        timestamp: new Date(1_700_000_000_000).toISOString(),
+        confirmed: true,
+      },
+    ]);
+  });
+
+  it('marks a negative delta as a send and reports the recipient as counterparty', () => {
+    const txs = [
+      {
+        digest: 'd_out',
+        timestampMs: '1700000001000',
+        transaction: { data: { sender: SUI_ME } },
+        balanceChanges: [
+          { coinType: SUI, amount: '-2000000000', owner: { AddressOwner: SUI_ME } },
+          { coinType: SUI, amount: '2000000000', owner: { AddressOwner: SUI_OTHER } },
+        ],
+      },
+    ];
+
+    const [tx] = normalizeSuiTransactions(txs, SUI_ME);
+    expect(tx).toMatchObject({ type: 'send', amount: '2.000000000', counterparty: SUI_OTHER });
+  });
+
+  it('dedupes overlapping From/To blocks on digest and sorts newest first', () => {
+    const base = {
+      transaction: { data: { sender: SUI_OTHER } },
+      balanceChanges: [{ coinType: SUI, amount: '1000000000', owner: { AddressOwner: SUI_ME } }],
+    };
+    const txs = [
+      { digest: 'old', timestampMs: '1700000000000', ...base },
+      { digest: 'new', timestampMs: '1700000005000', ...base },
+      { digest: 'old', timestampMs: '1700000000000', ...base },
+    ];
+
+    const result = normalizeSuiTransactions(txs, SUI_ME);
+    expect(result.map(t => t.hash)).toEqual(['new', 'old']);
+  });
+
+  it('falls back to amount 0 and sender-based direction when no SUI moves for the address', () => {
+    const txs = [
+      {
+        digest: 'd_obj',
+        timestampMs: '1700000002000',
+        transaction: { data: { sender: SUI_ME } },
+        balanceChanges: [
+          { coinType: '0x2::other::COIN', amount: '5', owner: { AddressOwner: SUI_ME } },
+        ],
+      },
+    ];
+
+    const [tx] = normalizeSuiTransactions(txs, SUI_ME);
+    expect(tx).toMatchObject({ type: 'send', amount: '0.000000000', counterparty: 'unknown' });
   });
 });

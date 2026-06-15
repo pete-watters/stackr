@@ -94,4 +94,34 @@ describe('validateAddress', () => {
       expect(result.valid).toBe(false);
     });
   });
+
+  describe('SUI', () => {
+    const valid = `0x${'a'.repeat(64)}`;
+
+    it('accepts a 0x-prefixed 64-hex-character address', () => {
+      expect(validateAddress('sui', valid).valid).toBe(true);
+    });
+
+    it('accepts mixed-case hex', () => {
+      expect(validateAddress('sui', `0x${'AbCdEf01'.repeat(8)}`).valid).toBe(true);
+    });
+
+    it('rejects an address without the 0x prefix', () => {
+      const result = validateAddress('sui', 'a'.repeat(64));
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain('SUI');
+    });
+
+    it('rejects a too-short address (63 hex chars)', () => {
+      expect(validateAddress('sui', `0x${'a'.repeat(63)}`).valid).toBe(false);
+    });
+
+    it('rejects a too-long address (65 hex chars)', () => {
+      expect(validateAddress('sui', `0x${'a'.repeat(65)}`).valid).toBe(false);
+    });
+
+    it('rejects non-hex characters', () => {
+      expect(validateAddress('sui', `0x${'g'.repeat(64)}`).valid).toBe(false);
+    });
+  });
 });

@@ -2,7 +2,7 @@ import type { SVGAttributes } from 'react';
 import { forwardRef } from 'react';
 import { cn } from './lib/utils.js';
 
-type ChainType = 'btc' | 'stx' | 'eth' | 'sol';
+type ChainType = 'btc' | 'stx' | 'eth' | 'sol' | 'sui';
 type AvatarSize = 'sm' | 'md' | 'lg';
 
 export interface ChainAvatarProps extends Omit<SVGAttributes<SVGSVGElement>, 'children'> {
@@ -15,6 +15,7 @@ const chainColors: Record<ChainType, string> = {
   stx: '#5546FF',
   eth: '#627EEA',
   sol: '#9945FF',
+  sui: '#4DA2FF',
 };
 
 const chainLabels: Record<ChainType, string> = {
@@ -22,6 +23,7 @@ const chainLabels: Record<ChainType, string> = {
   stx: 'S',
   eth: 'E',
   sol: 'S',
+  sui: 'S',
 };
 
 const sizeMap: Record<AvatarSize, number> = {
