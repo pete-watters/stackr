@@ -17,31 +17,80 @@ const capacitorModuleStubs: Array<[RegExp, string]> = [
   [/^@\/components\/wallet-connect-modal$/, 'src/components/wallet-connect-modal.capacitor.tsx'],
 ];
 
-// Security response headers (audit backlog). The CSP ships REPORT-ONLY first:
-// the wallet stacks (RainbowKit / wallet-adapter / WalletConnect) load assets
-// and open connections we don't fully enumerate yet, and an enforced CSP that
-// guessed wrong would break connect flows in production. Tune from the
-// console's violation reports, then move it to Content-Security-Policy.
+// Content-Security-Policy. This now ships ENFORCING (was report-only in #85):
+// every origin below was enumerated from the code that actually opens it —
+// the chain service clients (`packages/services`), the same-origin RPC proxies
+// (`/api/rpc/*`, covered by `'self'`), the wallet stacks (RainbowKit / wagmi /
+// WalletConnect / Reown / Solana wallet-adapter), the Kraken market sockets,
+// and PostHog analytics. Grep `https?://` / `wss?://` across `apps/web/src` and
+// `packages/*/src` to re-derive this list when a new data source lands.
+//
+// `connect-src` is the security-critical directive (it bounds where the app can
+// exfiltrate to). It is tightened off the previous blanket `https: wss:` to the
+// specific data hosts, plus WALLETCONNECT/REOWN WILDCARDS
+// (`*.walletconnect.com|org`, `*.reown.com`): the WalletConnect relay and Reown
+// AppKit rotate through a fleet of subdomains we can't pin individually, so the
+// wildcard is the safe enforcement boundary that still blocks arbitrary
+// third-party origins. `img-src` keeps `https:` because wallet/token logos are
+// served from many third-party CDNs (the WalletConnect explorer, Reown image
+// delivery, token lists) we likewise can't enumerate; `http:`/data exfiltration
+// via `<img>` is still blocked. See #97 / #69.
+const walletConnectConnect = [
+  // WalletConnect v2 relay (websocket) + HTTP infra; Reown AppKit / web3modal.
+  'wss://relay.walletconnect.com',
+  'wss://relay.walletconnect.org',
+  'https://*.walletconnect.com',
+  'https://*.walletconnect.org',
+  'https://*.reown.com',
+  'https://api.web3modal.org',
+  'https://api.web3modal.com',
+];
+
+const chainDataConnect = [
+  'https://blockstream.info', // BTC balances + transactions (services/btc, transactions)
+  'https://api.hiro.so', // STX balances, BNS, transactions (services/stx, transactions)
+  'https://api.etherscan.io', // ETH balances + transactions (services/eth, transactions)
+  'https://api.mainnet-beta.solana.com', // SOL balance JSON-RPC (services/sol)
+  'https://api.coingecko.com', // spot prices + market charts (services/prices)
+  'https://fullnode.mainnet.sui.io', // SUI balances + transactions (services/sui)
+  'https://www.alphavantage.co', // stock quotes / search / history (services/stocks)
+  'https://api.kamino.finance', // Kamino liquidation-health reads (services/health/kamino)
+  'wss://ws.kraken.com', // live ticker + order book (services/ticker, orderbook)
+];
+
+const analyticsConnect = [
+  'https://us.i.posthog.com', // PostHog ingest (packages/analytics)
+  'https://us-assets.i.posthog.com', // PostHog static assets (array.js / recorder)
+];
+
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  // 'unsafe-inline' covers Next's inline bootstrap scripts (no nonce pipeline
+  // under OpenNext); 'wasm-unsafe-eval' covers wallet/crypto WASM. The previous
+  // blanket 'unsafe-eval' is intentionally dropped.
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://us-assets.i.posthog.com",
+  // Tailwind, RainbowKit and the wallet UIs inject inline styles.
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:", // next/font self-hosts; no runtime font CDN
+  `connect-src ${["'self'", ...chainDataConnect, ...analyticsConnect, ...walletConnectConnect].join(' ')}`,
+  // WalletConnect / Reown render their pairing + verify UI in iframes.
+  "frame-src 'self' https://*.walletconnect.com https://*.walletconnect.org https://*.reown.com",
+  "worker-src 'self' blob:", // wallet adapters spin up blob workers
+  "manifest-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
+
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-  {
-    key: 'Content-Security-Policy-Report-Only',
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
-      "font-src 'self' data:",
-      "connect-src 'self' https: wss:",
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-    ].join('; '),
-  },
+  { key: 'Content-Security-Policy', value: contentSecurityPolicy },
 ];
 
 const nextConfig: NextConfig = {
