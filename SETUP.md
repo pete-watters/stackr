@@ -46,10 +46,12 @@ where possible.
 | (user-entered in Settings) | Alpha Vantage API key for stock prices + charts                                  |
 
 Public (`NEXT_PUBLIC_`) vars go in `.env.local`. Server-only secrets like
-`ALCHEMY_API_KEY` and `HELIUS_API_KEY` (no `NEXT_PUBLIC_` prefix — they must
-never reach the browser bundle) go in `apps/web/.dev.vars` (copy
-`apps/web/.dev.vars.example`) for local dev and become `wrangler secret put`
-secrets for deploys — never commit either.
+`ALCHEMY_API_KEY` and `HELIUS_API_KEY` must **never** carry a `NEXT_PUBLIC_`
+prefix — that would inline them into the browser bundle. They go in
+`apps/web/.dev.vars` (copy `apps/web/.dev.vars.example`) for local dev and
+become `wrangler secret put` secrets for deploys — never commit either. Both
+keys are consumed exclusively by the same-origin proxies at
+`/api/rpc/eth` and `/api/rpc/solana`; client code never reads them directly.
 
 ## Workspace layout
 
