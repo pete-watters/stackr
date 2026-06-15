@@ -4,7 +4,7 @@ import { ChainAvatar, Tooltip, TooltipTrigger, TooltipContent } from '@stackr/ui
 import { chainMeta, type Chain } from '@stackr/models';
 import { useWalletStore } from '@/lib/wallet-store';
 
-const CHAINS: Chain[] = ['eth', 'sol', 'stx', 'btc'];
+const CHAINS: Chain[] = ['eth', 'sol', 'stx', 'btc', 'sui'];
 
 /**
  * A row of per-chain dots in the header. A chain is "lit" (full opacity) when

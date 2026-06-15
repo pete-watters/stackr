@@ -30,7 +30,7 @@ const RATES: Record<Currency, number> = {
   cad: 1.3,
   aud: 1.5,
 };
-const USD_PRICE: Record<Chain, number> = { btc: 100, eth: 50, sol: 10, stx: 2 };
+const USD_PRICE: Record<Chain, number> = { btc: 100, eth: 50, sol: 10, stx: 2, sui: 3 };
 
 function makeFetchPrices() {
   return vi.fn(

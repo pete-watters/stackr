@@ -11,6 +11,7 @@ const chainToCoinGeckoId: Record<Chain, string> = {
   eth: 'ethereum',
   stx: 'blockstack',
   sol: 'solana',
+  sui: 'sui',
 };
 
 /**

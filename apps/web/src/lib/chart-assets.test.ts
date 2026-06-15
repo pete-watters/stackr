@@ -14,7 +14,7 @@ import {
 } from './chart-assets';
 
 feature('chart asset options', () => {
-  scenario('falls back to the four core chains when nothing is tracked', () => {
+  scenario('falls back to the core chains when nothing is tracked', () => {
     const options = buildAssetOptions({ walletChains: [], connectedChains: [], stockSymbols: [] });
     then('the default chains are offered', () =>
       expect(options.map(assetId)).toEqual([
@@ -22,6 +22,7 @@ feature('chart asset options', () => {
         'crypto:eth',
         'crypto:sol',
         'crypto:stx',
+        'crypto:sui',
       ]),
     );
   });

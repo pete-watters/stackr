@@ -17,6 +17,8 @@ export async function fetchTransactions(chain: Chain, address: string): Promise<
       return fetchStxTransactions(address);
     case 'sol':
       return fetchSolTransactions(address);
+    case 'sui':
+      return fetchSuiTransactions(address);
   }
 }
 
@@ -275,6 +277,161 @@ async function fetchSolTransactions(address: string): Promise<Transaction[]> {
     'sol.fetchTransactions(ingress)',
   );
   return normalizeSolTransactions(data.result ?? []);
+}
+
+// ---------------------------------------------------------------------------
+// SUI — suix_queryTransactionBlocks
+// ---------------------------------------------------------------------------
+
+const SUI_RPC = 'https://fullnode.mainnet.sui.io';
+
+/** The native SUI coin type; activity amounts are read only from its deltas. */
+const SUI_COIN_TYPE = '0x2::sui::SUI';
+
+/**
+ * A single coin balance delta on a transaction block. `amount` is a **signed
+ * decimal string** (negative = leaving the owner) and can exceed 2^53 MIST, so
+ * it stays a string into the BigInt formatter — never `Number(...)`. `owner` is
+ * an untagged union (`{ AddressOwner }`, `{ ObjectOwner }`, `{ Shared }`,
+ * `"Immutable"`), so it is read defensively rather than typed exhaustively.
+ */
+const SuiBalanceChangeSchema = z.object({
+  coinType: z.string(),
+  amount: z.string(),
+  owner: z.unknown(),
+});
+
+const SuiTxBlockSchema = z.object({
+  digest: z.string(),
+  timestampMs: z.string().nullable().optional(),
+  transaction: z
+    .object({ data: z.object({ sender: z.string().optional() }).optional() })
+    .nullable()
+    .optional(),
+  balanceChanges: z.array(SuiBalanceChangeSchema).nullable().optional(),
+});
+
+const SuiTxBlocksSchema = z.object({
+  result: z.object({
+    data: z.array(SuiTxBlockSchema),
+  }),
+});
+
+type SuiTxBlock = z.infer<typeof SuiTxBlockSchema>;
+
+/** Pull the address out of an `{ AddressOwner }` owner; `undefined` otherwise. */
+function suiOwnerAddress(owner: unknown): string | undefined {
+  if (owner !== null && typeof owner === 'object' && 'AddressOwner' in owner) {
+    const addr = (owner as { AddressOwner: unknown }).AddressOwner;
+    return typeof addr === 'string' ? addr : undefined;
+  }
+  return undefined;
+}
+
+/**
+ * Normalize Sui transaction blocks into domain `Transaction`s. The FromAddress
+ * and ToAddress queries overlap, so blocks are deduped on `digest`. Direction
+ * and amount come from the watched address's own native-SUI balance delta (its
+ * sign gives send vs receive, its magnitude the amount); when a block moves no
+ * SUI for the address (e.g. a pure object transfer) the amount is `0` and the
+ * direction falls back to whether the address was the sender. Pure (no network)
+ * so the delta/dedupe logic is unit-testable.
+ */
+export function normalizeSuiTransactions(txs: SuiTxBlock[], address: string): Transaction[] {
+  const byDigest = new Map<string, SuiTxBlock>();
+  for (const tx of txs) {
+    if (!byDigest.has(tx.digest)) byDigest.set(tx.digest, tx);
+  }
+
+  const normalized = [...byDigest.values()].map(tx => {
+    const changes = tx.balanceChanges ?? [];
+    const sender = tx.transaction?.data?.sender;
+
+    const mine = changes.find(
+      change => change.coinType === SUI_COIN_TYPE && suiOwnerAddress(change.owner) === address,
+    );
+    const signed = mine?.amount;
+    const isReceive = signed !== undefined ? !signed.startsWith('-') : sender !== address;
+    const magnitude =
+      signed === undefined ? '0' : signed.startsWith('-') ? signed.slice(1) : signed;
+
+    // On a send, the counterparty is whoever the SUI landed on; on a receive,
+    // it's the block's sender.
+    const recipient = changes.find(
+      change =>
+        change.coinType === SUI_COIN_TYPE &&
+        !change.amount.startsWith('-') &&
+        suiOwnerAddress(change.owner) !== address,
+    );
+    const counterparty = isReceive
+      ? (sender ?? 'unknown')
+      : (suiOwnerAddress(recipient?.owner) ?? 'unknown');
+
+    return {
+      hash: tx.digest,
+      chain: 'sui' as const,
+      type: isReceive ? ('receive' as const) : ('send' as const),
+      amount: formatBaseUnits(magnitude, 9),
+      counterparty,
+      timestamp: tx.timestampMs
+        ? new Date(Number(tx.timestampMs)).toISOString()
+        : new Date().toISOString(),
+      // queryTransactionBlocks only returns executed (finalized) blocks.
+      confirmed: true,
+    };
+  });
+
+  normalized.sort((a, b) => (a.timestamp < b.timestamp ? 1 : a.timestamp > b.timestamp ? -1 : 0));
+
+  return parseOrThrow(
+    TransactionListSchema,
+    normalized.slice(0, 20),
+    'sui.fetchTransactions(egress)',
+  );
+}
+
+async function fetchSuiTransactions(address: string): Promise<Transaction[]> {
+  // No single filter ORs sender and recipient, so the inbound and outbound
+  // sides are queried separately and merged/deduped in the normalizer.
+  const queryBody = (filterKey: 'FromAddress' | 'ToAddress') =>
+    JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'suix_queryTransactionBlocks',
+      params: [
+        {
+          filter: { [filterKey]: address },
+          options: { showInput: true, showBalanceChanges: true },
+        },
+        null,
+        20,
+        true,
+      ],
+    });
+
+  const post = (filterKey: 'FromAddress' | 'ToAddress') =>
+    fetch(SUI_RPC, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: queryBody(filterKey),
+    });
+
+  const [fromRes, toRes] = await Promise.all([post('FromAddress'), post('ToAddress')]);
+  if (!fromRes.ok) throw new Error(`Sui RPC error: ${fromRes.status}`);
+  if (!toRes.ok) throw new Error(`Sui RPC error: ${toRes.status}`);
+
+  const fromData = parseOrThrow(
+    SuiTxBlocksSchema,
+    await fromRes.json(),
+    'sui.fetchTransactions(ingress)',
+  );
+  const toData = parseOrThrow(
+    SuiTxBlocksSchema,
+    await toRes.json(),
+    'sui.fetchTransactions(ingress)',
+  );
+
+  return normalizeSuiTransactions([...fromData.result.data, ...toData.result.data], address);
 }
 
 /** Multi-chain implementation of the transaction port. */
