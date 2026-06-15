@@ -15,6 +15,7 @@ export type {
   StockAdapter,
   OrderBookAdapter,
   HealthAdapter,
+  NftAdapter,
 } from './ports.js';
 
 export { fetchBtcBalance, btcBalanceAdapter } from './btc.js';
@@ -86,7 +87,36 @@ export {
 } from './health/kamino.js';
 import { aaveHealthAdapter } from './health/aave.js';
 import { kaminoHealthAdapter } from './health/kamino.js';
-import type { HealthAdapter } from './ports.js';
+import type { HealthAdapter, NftAdapter } from './ports.js';
+
+export { toIpfsGatewayUrl, DEFAULT_IPFS_GATEWAY } from './nft/ipfs-url.js';
+export {
+  detectContentType,
+  contentTypeFromExtension,
+  SUPPORTED_NFT_CONTENT_TYPES,
+} from './nft/content-type.js';
+export {
+  fetchStacksNfts,
+  buildStacksNftAsset,
+  parseAssetIdentifier,
+  tokenIdFromRepr,
+  normalizeStxFloor,
+  parseHiroMetadata,
+  parseGammaMetadata,
+  mergeTokenMetadata,
+  stacksNftAdapter,
+  type StacksNftDeps,
+} from './nft/stacks.js';
+import { stacksNftAdapter } from './nft/stacks.js';
+
+/**
+ * All NFT adapters, one per chain × protocol. The `useNftHoldings` hook fans
+ * out across these (filtered to the adapters whose chain it has addresses for)
+ * and concatenates the results. Ships the Stacks SIP-9 adapter; the EVM
+ * (Alchemy), Bitcoin ordinals/runes/stamps and Solana (Helius) adapters
+ * register here in later phases of #93.
+ */
+export const nftAdapters: readonly NftAdapter[] = [stacksNftAdapter];
 
 /**
  * All liquidation-health adapters, one per protocol. The `useHealthPositions`
