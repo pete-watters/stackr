@@ -43,3 +43,17 @@ export {
   type StockSearchResult,
   type StockQuote,
 } from './stock.js';
+export {
+  MoneySchema,
+  NftProtocolSchema,
+  NftMediaSchema,
+  NftAttributeSchema,
+  NftCollectionSchema,
+  NftAssetSchema,
+  type Money,
+  type NftProtocol,
+  type NftMedia,
+  type NftAttribute,
+  type NftCollection,
+  type NftAsset,
+} from './nft.js';
