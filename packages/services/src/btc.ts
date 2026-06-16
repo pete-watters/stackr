@@ -11,6 +11,11 @@ const BLOCKSTREAM_API = 'https://blockstream.info/api';
  * Ingress schema for Blockstream's address endpoint. Kept private to this
  * module — this vendor shape must never escape the adapter. We model only the
  * fields we consume; Blockstream returns more.
+ *
+ * Sats fields are validated as numbers at the JSON boundary. Bitcoin's total
+ * supply is 21M × 1e8 = 2.1e15 satoshis, which is within
+ * `Number.MAX_SAFE_INTEGER` (2^53 ≈ 9e15), so JSON number precision is not at
+ * risk. The arithmetic below then uses BigInt to keep the intent documented.
  */
 const BlockstreamAddressSchema = z.object({
   chain_stats: z.object({
@@ -37,12 +42,15 @@ export async function fetchBtcBalance(address: string): Promise<Balance> {
     'btc.fetchBalance(ingress)',
   );
 
-  const confirmedBalance = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum;
-  const mempoolBalance = data.mempool_stats.funded_txo_sum - data.mempool_stats.spent_txo_sum;
+  const confirmedBalance =
+    BigInt(data.chain_stats.funded_txo_sum) - BigInt(data.chain_stats.spent_txo_sum);
+  const mempoolBalance =
+    BigInt(data.mempool_stats.funded_txo_sum) - BigInt(data.mempool_stats.spent_txo_sum);
   const totalSatoshis = confirmedBalance + mempoolBalance;
 
   const { decimals } = chainMeta.btc;
-  const balance = formatBaseUnits(totalSatoshis, decimals);
+  const rawBalance = totalSatoshis.toString();
+  const balance = formatBaseUnits(rawBalance, decimals);
 
   // Egress boundary: guarantee a valid domain `Balance` leaves the adapter.
   return parseOrThrow(
@@ -50,7 +58,7 @@ export async function fetchBtcBalance(address: string): Promise<Balance> {
     {
       chain: 'btc',
       address,
-      rawBalance: totalSatoshis.toString(),
+      rawBalance,
       balance,
       updatedAt: new Date().toISOString(),
     },
