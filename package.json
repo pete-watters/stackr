@@ -49,6 +49,7 @@
       "node-forge": ">=1.4.0",
       "flatted": ">=3.4.2",
       "@babel/plugin-transform-modules-systemjs": ">=7.29.4"
+    },
     "auditConfig": {
       "//": "Baseline allowlist for the CI `pnpm audit --prod --audit-level high` gate. Each entry is a high/critical advisory with NO fix reachable from our direct deps without a major/minor upgrade (deferred to per-package PRs under #69). The gate fails the build on any NEW high/critical so the baseline can't grow silently. Burn this list down as upgrades land; never add to it to silence a fixable advisory.",
       "ignoreGhsas": [
