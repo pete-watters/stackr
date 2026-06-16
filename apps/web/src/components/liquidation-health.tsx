@@ -22,7 +22,8 @@ function maskAddress(address: string): string {
 interface LiquidationHealthProps {
   /**
    * Watched + connected addresses to read liquidation health for, grouped by
-   * chain — EVM addresses feed Aave, Solana addresses feed Kamino.
+   * chain — EVM addresses feed Aave, Solana addresses feed Kamino, Stacks
+   * addresses feed Zest + Granite.
    */
   addressesByChain: HealthAddressesByChain;
   hideBalance?: boolean;
