@@ -12,8 +12,17 @@ export const contentType = 'image/png';
 // (`output: 'export'` rejects metadata image routes without static config).
 export const dynamic = 'force-static';
 
+function loadFont(): Buffer | null {
+  try {
+    return readFileSync(join(process.cwd(), 'src/app/LiberationSans-Bold.ttf'));
+  } catch (err) {
+    console.error('[og] Failed to load LiberationSans-Bold.ttf:', err);
+    return null;
+  }
+}
+
 export default async function OGImage() {
-  const fontData = readFileSync(join(process.cwd(), 'src/app/LiberationSans-Bold.ttf'));
+  const fontData = loadFont();
 
   return new ImageResponse(
     <div
@@ -92,14 +101,16 @@ export default async function OGImage() {
     </div>,
     {
       ...size,
-      fonts: [
-        {
-          name: 'LiberationSans',
-          data: fontData,
-          style: 'normal',
-          weight: 700,
-        },
-      ],
+      fonts: fontData
+        ? [
+            {
+              name: 'LiberationSans',
+              data: fontData,
+              style: 'normal' as const,
+              weight: 700 as const,
+            },
+          ]
+        : [],
     },
   );
 }
