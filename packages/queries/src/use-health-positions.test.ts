@@ -67,6 +67,18 @@ describe('healthQueryPairs', () => {
     expect(byProtocol).not.toContain('kamino:0xabc');
   });
 
+  it('fans a single Stacks address out to both Stacks protocols (Zest + Granite)', () => {
+    const pairs = healthQueryPairs({ stx: ['SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7'] });
+    const protocols = pairs
+      .filter(({ adapter }) => adapter.chain === 'stx')
+      .map(({ adapter }) => adapter.protocol);
+    expect(protocols).toContain('zest');
+    expect(protocols).toContain('granite');
+    // Both Stacks pairs target the same address; neither EVM/SOL adapter fires.
+    expect(pairs.every(({ adapter }) => adapter.chain === 'stx')).toBe(true);
+    expect(pairs).toHaveLength(2);
+  });
+
   it('emits no pairs for a chain with no addresses', () => {
     const pairs = healthQueryPairs({ eth: ['0xabc'] });
     expect(pairs.every(({ adapter }) => adapter.chain === 'eth')).toBe(true);

@@ -45,7 +45,7 @@ export default function DashboardPage() {
   const connectedAddressSet = new Set((connectedAddresses.eth ?? []).map(a => a.toLowerCase()));
 
   // Addresses (watched + connected) feed the liquidation-health adapters,
-  // grouped by chain: EVM → Aave, Solana → Kamino.
+  // grouped by chain: EVM → Aave, Solana → Kamino, Stacks → Zest + Granite.
   const evmAddresses = [...new Set(allWallets.filter(w => w.chain === 'eth').map(w => w.address))];
   const solAddresses = [...new Set(allWallets.filter(w => w.chain === 'sol').map(w => w.address))];
 
@@ -197,9 +197,9 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            {(evmAddresses.length > 0 || solAddresses.length > 0) && (
+            {(evmAddresses.length > 0 || solAddresses.length > 0 || stxAddresses.length > 0) && (
               <LiquidationHealth
-                addressesByChain={{ eth: evmAddresses, sol: solAddresses }}
+                addressesByChain={{ eth: evmAddresses, sol: solAddresses, stx: stxAddresses }}
                 hideBalance={hideBalance}
               />
             )}
