@@ -1,0 +1,9 @@
+# Fastlane plugins. Empty by default.
+#
+# Optional beta distribution to non-store testers via Firebase App Distribution —
+# documented in docs/mobile-release.md, intentionally NOT wired. To enable:
+# uncomment the line below and the matching gem in ../Gemfile, run
+# `bundle install`, then add a firebase lane that calls
+# `firebase_app_distribution`.
+#
+# gem 'fastlane-plugin-firebase_app_distribution'

@@ -41,3 +41,24 @@ coverage/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Fastlane (mobile CD) — reports, fetched metadata, and Ruby gem bundles
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/test_output/
+.bundle/
+vendor/bundle/
+Gemfile.lock
+
+# Mobile build artifacts
+*.ipa
+*.aab
+*.apk
+*.app.dSYM.zip
+
+# Capacitor native build artifacts (the ios/ & android/ projects are generated
+# by `npx cap add`; these heavy outputs are never committed)
+apps/web/ios/App/Pods/
+apps/web/android/.gradle/
+apps/web/android/build/
+apps/web/android/app/build/

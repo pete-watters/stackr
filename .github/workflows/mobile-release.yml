@@ -1,0 +1,106 @@
+name: Mobile Release
+
+# Ships the Capacitor wrap to TestFlight (iOS) and the Play internal track
+# (Android). Manual-only (workflow_dispatch) or via a `mobile-v*` tag — it has
+# NO pull_request or branch trigger, so it never runs on PRs and never on the
+# main web-deploy path (Cloudflare Workers Builds), which it does not touch.
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Which store(s) to release to'
+        type: choice
+        options:
+          - ios
+          - android
+          - both
+        default: both
+      track:
+        description: 'Android Play track (iOS always uploads to TestFlight)'
+        type: string
+        default: internal
+  push:
+    tags:
+      - 'mobile-v*'
+
+concurrency:
+  group: mobile-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ios:
+    # Tag pushes carry no inputs → release both platforms.
+    if: github.event_name == 'push' || github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both'
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/provision
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: apps/web
+
+      - name: Build static web export (Capacitor target)
+        run: NEXT_PUBLIC_TARGET=capacitor pnpm --filter @stackr/web build:mobile
+
+      - name: Add + sync iOS native project
+        working-directory: apps/web
+        run: |
+          # The native project is generated, not committed — scaffold if absent.
+          if [ ! -d ios ]; then npx cap add ios; fi
+          npx cap sync ios
+
+      - name: Fastlane iOS → TestFlight
+        working-directory: apps/web
+        run: bundle exec fastlane ios beta
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+  android:
+    if: github.event_name == 'push' || github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/provision
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: apps/web
+
+      - name: Build static web export (Capacitor target)
+        run: NEXT_PUBLIC_TARGET=capacitor pnpm --filter @stackr/web build:mobile
+
+      - name: Add + sync Android native project
+        working-directory: apps/web
+        run: |
+          # The native project is generated, not committed — scaffold if absent.
+          if [ ! -d android ]; then npx cap add android; fi
+          npx cap sync android
+
+      - name: Fastlane Android → Play internal track
+        working-directory: apps/web
+        run: bundle exec fastlane android internal track:"${{ github.event.inputs.track || 'internal' }}"
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}

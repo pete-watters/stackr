@@ -1,0 +1,22 @@
+# Matchfile — fastlane match config (TEMPLATE: placeholder git_url).
+#
+# match stores iOS signing assets (distribution cert + provisioning profiles)
+# encrypted in a PRIVATE git repo. Nothing here is itself a secret: the
+# decryption key is MATCH_PASSWORD (CI secret) and access to git_url is the gate.
+#
+# Owner one-time (on a Mac):
+#   1. Create a PRIVATE repo, e.g. pete-watters/stackr-match.
+#   2. `bundle exec fastlane match appstore` to seed certs + profiles into it.
+#   3. Set MATCH_GIT_URL + MATCH_PASSWORD as GitHub Actions secrets.
+# Alternative to match: manual signing — install the distribution cert + profile
+# on the build machine and leave MATCH_GIT_URL unset (the Fastfile guard skips
+# match and uses the installed assets).
+
+git_url(ENV['MATCH_GIT_URL'] || 'https://github.com/pete-watters/stackr-match.git') # PLACEHOLDER private repo
+storage_mode('git')
+
+type('appstore') # distribution; use 'development' for local device builds
+
+app_identifier(['ie.stackr.app'])
+
+readonly(true) # CI never mints new certs — seed them locally first

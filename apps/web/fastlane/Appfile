@@ -1,0 +1,22 @@
+# Appfile — shared Fastlane app identity (TEMPLATE: values are placeholders).
+#
+# The bundle id / package name is already fixed by capacitor.config.ts
+# (appId: ie.stackr.app). No secrets live here — API keys and the Play
+# service-account JSON come from environment variables / CI secrets (Fastfile).
+
+for_platform :ios do
+  app_identifier('ie.stackr.app') # matches capacitor.config.ts appId
+
+  # Auth is the App Store Connect API key (see Fastfile), not apple_id. These are
+  # only used by tooling that still wants a team id; sourced from env so nothing
+  # account-specific is committed.
+  apple_id(ENV['APPLE_ID'].to_s)         # optional — legacy Apple-ID auth only
+  team_id(ENV['APPLE_TEAM_ID'].to_s)     # Apple Developer team id
+  itc_team_id(ENV['ITC_TEAM_ID'].to_s)   # App Store Connect team id (if multiple)
+end
+
+for_platform :android do
+  package_name('ie.stackr.app') # matches capacitor.config.ts appId
+  # supply receives the service account via json_key_data (PLAY_SERVICE_ACCOUNT_JSON)
+  # in the Fastfile; no json_key_file path is committed.
+end

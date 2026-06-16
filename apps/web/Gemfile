@@ -1,0 +1,12 @@
+# Ruby gems for Stackr mobile CD (Fastlane). Installed in CI by ruby/setup-ruby
+# (bundler-cache) before the Fastlane lanes run; locally: `bundle install`.
+source 'https://rubygems.org'
+
+gem 'fastlane', '~> 2.227'
+
+# Optional beta-distribution lane (Firebase App Distribution) — documented, not
+# wired. Uncomment with the matching line in fastlane/Pluginfile to enable.
+# gem 'fastlane-plugin-firebase_app_distribution'
+
+plugins_path = File.join(File.dirname(__FILE__), 'fastlane', 'Pluginfile')
+eval_gemfile(plugins_path) if File.exist?(plugins_path)
