@@ -32,6 +32,8 @@ export {
 } from './prices.js';
 export { ETH_PROXY_PATH, ethPublicRpcUrl, resolveEthRpcUrl } from './eth-rpc.js';
 export { parseOrThrow } from './validate.js';
+export { ServiceException, isServiceException, type ServiceError } from './service-error.js';
+export { safeFetch } from './fetch-wrapper.js';
 export { formatBaseUnits } from './base-units.js';
 export { formatFiat, formatUsd, formatCrypto, formatChange, maskFiat } from './format.js';
 export {
