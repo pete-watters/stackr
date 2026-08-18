@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildRobotsTxt, isIndexableDeployment } from './robots-txt';
+import {
+  ALLOWED_CITATION_CRAWLERS,
+  BLOCKED_TRAINING_CRAWLERS,
+  buildRobotsTxt,
+  isIndexableDeployment,
+} from './robots-txt';
 
 /**
  * The emitted body is the contract — a crawler reads bytes, not a
@@ -12,6 +17,30 @@ describe('buildRobotsTxt (production)', () => {
   it('ships the Content Signals policy: indexable and answerable, not trainable', () => {
     expect(lines).toContain('User-agent: *');
     expect(lines).toContain('Content-Signal: search=yes, ai-input=yes, ai-train=no');
+  });
+
+  it('sets each signal individually — search yes, ai-input yes, ai-train no', () => {
+    const [signalLine] = lines.filter(line => line.startsWith('Content-Signal:'));
+    const signals = (signalLine ?? '')
+      .replace('Content-Signal:', '')
+      .split(',')
+      .map(entry => entry.trim());
+
+    expect(signals).toContain('search=yes');
+    // Cloudflare's own managed line omits ai-input entirely, which reads as
+    // "no opinion" on exactly the RAG/answer-engine use this site wants.
+    expect(signals).toContain('ai-input=yes');
+    expect(signals).toContain('ai-train=no');
+  });
+
+  it('carries the express reservation of rights the signals depend on', () => {
+    expect(lines).toContain(
+      '# ANY RESTRICTIONS EXPRESSED VIA CONTENT SIGNALS ARE EXPRESS RESERVATIONS OF',
+    );
+    expect(lines).toContain(
+      '# RIGHTS UNDER ARTICLE 4 OF THE EUROPEAN UNION DIRECTIVE 2019/790 ON COPYRIGHT',
+    );
+    expect(lines).toContain('# AND RELATED RIGHTS IN THE DIGITAL SINGLE MARKET.');
   });
 
   it('keeps machine-facing and private routes out', () => {
@@ -30,8 +59,60 @@ describe('buildRobotsTxt (production)', () => {
     expect(lines).toContain('Sitemap: https://stackr.ie/sitemap.xml');
   });
 
-  it('never blanket-disallows on production', () => {
-    expect(lines).not.toContain('Disallow: /');
+  it('never blanket-disallows the default group on production', () => {
+    // `Disallow: /` appears only inside the per-bot groups below; the wildcard
+    // group must never carry it. Slice at the first named group to check.
+    const firstNamedGroup = lines.findIndex(
+      line => line.startsWith('User-agent: ') && line !== 'User-agent: *',
+    );
+    expect(firstNamedGroup).toBeGreaterThan(0);
+    expect(lines.slice(0, firstNamedGroup)).not.toContain('Disallow: /');
+  });
+
+  /**
+   * Cloudflare's Managed robots.txt used to prepend these groups. It is now
+   * disabled (ADR 0021), so if the app stops emitting them, training crawlers
+   * silently become allowed — a regression with no visible symptom. Hence a
+   * test per crawler rather than a single "some groups exist" assertion.
+   */
+  it.each(BLOCKED_TRAINING_CRAWLERS)('refuses the training-only crawler %s', crawler => {
+    const group = lines.indexOf(`User-agent: ${crawler}`);
+
+    expect(group).toBeGreaterThan(-1);
+    expect(lines[group + 1]).toBe('Disallow: /');
+  });
+
+  it('blocks exactly the training-only crawlers and no others', () => {
+    const namedGroups = lines
+      .filter(line => line.startsWith('User-agent: ') && line !== 'User-agent: *')
+      .map(line => line.replace('User-agent: ', ''));
+
+    expect(namedGroups.sort()).toEqual([...BLOCKED_TRAINING_CRAWLERS].sort());
+  });
+
+  it.each(ALLOWED_CITATION_CRAWLERS)('never adds a Disallow group for %s', crawler => {
+    expect(lines).not.toContain(`User-agent: ${crawler}`);
+  });
+
+  it('names the citation crawlers in the output so nobody re-blocks them later', () => {
+    ALLOWED_CITATION_CRAWLERS.forEach(crawler => {
+      expect(body).toContain(crawler);
+    });
+    expect(body).toContain('Allowed on purpose');
+  });
+
+  it('keeps ClaudeBot and Google-Extended out of the blocked set specifically', () => {
+    expect(BLOCKED_TRAINING_CRAWLERS).not.toContain('ClaudeBot');
+    expect(BLOCKED_TRAINING_CRAWLERS).not.toContain('Google-Extended');
+    expect(ALLOWED_CITATION_CRAWLERS).toContain('ClaudeBot');
+    expect(ALLOWED_CITATION_CRAWLERS).toContain('Google-Extended');
+  });
+
+  it('keeps the Sitemap line last, below every per-bot group', () => {
+    const sitemap = lines.findIndex(line => line.startsWith('Sitemap:'));
+    const lastGroup = lines.map(line => line.startsWith('User-agent: ')).lastIndexOf(true);
+
+    expect(sitemap).toBeGreaterThan(lastGroup);
   });
 });
 
