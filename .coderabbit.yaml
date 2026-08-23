@@ -17,6 +17,9 @@ reviews:
   auto_review:
     enabled: true
     drafts: false
+    # Both, deliberately. `dev` is the integration branch, but `hotfix/*`
+    # branches off `main` and those PRs go straight to production — the
+    # last place to skip a review.
     base_branches: [dev, main]
   path_filters:
     - '!**/pnpm-lock.yaml'
